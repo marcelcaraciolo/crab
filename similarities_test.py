@@ -19,6 +19,8 @@
 
 
 0.1 2010-10-11 Initial version.
+				Added tests for sim_euclidian, sim_pearson and sim_spearman
+0.11 2010-10-13 Added tests for sim_tanimoto, sim_cosine
 
 '''
 
@@ -33,7 +35,7 @@ __author__ = 'marcel@orygens.com'
 
 import unittest
 
-from similarity.similarity_distance import sim_euclidian,sim_pearson, sim_spearman
+from similarity.similarity_distance import sim_euclidian,sim_pearson, sim_spearman, sim_tanimoto, sim_cosine
 
 class SimilarityTest(unittest.TestCase):
 	
@@ -66,7 +68,6 @@ class SimilarityTest(unittest.TestCase):
 	def test_empty_rate_euclidian_similarity(self):
 		self.assertAlmostEquals(0.0, sim_euclidian(self.movies,'Marcel Caraciolo', 'Maria Gabriela'))
 		
-	
 	def test_basic_rate_pearson_similarity(self):
 		self.assertAlmostEquals(0.396059017, sim_pearson(self.movies,'Marcel Caraciolo', 'Luciana Nunes'))
 
@@ -78,6 +79,18 @@ class SimilarityTest(unittest.TestCase):
 		
 	def test_empty_rate_spearman_similarity(self):
 		self.assertAlmostEquals(0, sim_pearson(self.movies,'Marcel Caraciolo', 'Maria Gabriela'))
+	
+	def test_basic_rate_tanimoto_similarity(self):
+		self.assertAlmostEquals(0.26086956, sim_tanimoto(self.movies,'Marcel Caraciolo', 'Luciana Nunes'))
+			
+	def test_empty_rate_tanimoto_similarity(self):
+		self.assertAlmostEquals(0.0, sim_tanimoto(self.movies,'Marcel Caraciolo', 'Maria Gabriela'))
+	
+	def test_basic_rate_cosine_similarity(self):
+		self.assertAlmostEquals(0.960646301, sim_cosine(self.movies,'Marcel Caraciolo', 'Luciana Nunes'))
+
+	def test_empty_rate_cosine_similarity(self):
+		self.assertRaises(ValueError, sim_cosine, self.movies,'Marcel Caraciolo', 'Maria Gabriela')        
 		
 
 def suite():

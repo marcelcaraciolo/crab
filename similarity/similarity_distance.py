@@ -20,6 +20,7 @@
 
 0.1 2010-10-11 Initial version.
                Added sim_euclidian , sim_pearson, sim_spearman
+0.11 2010-10-13 Added sim_cosine, sim_tanimoto
 
 
 
@@ -145,8 +146,57 @@ def sim_spearman(prefs,person1,person2):
 	
 	if n == 0: return 0.0
 	
-	return 1.0 -  (  (6.0 * sumDiffSq) /  (n * (n*n -1)) )		
+	return 1.0 -  (  (6.0 * sumDiffSq) /  (n * (n*n -1)) )
+	
+
+def sim_tanimoto(prefs,person1,person2):
+	'''
+  	An implementation of a "similarity" based on the Tanimoto coefficient, 
+    or extended Jaccard coefficient.
+	
+	This is intended for "binary" data sets where a user either expresses a generic "yes" preference for an
+	item or has no preference. The actual preference values do not matter here, only their presence or absence.
+ 
+	Parameters:
+		the prefs: The preferences in dict format.
+		person1: The user profile you want to compare 
+		person2: The second user profile you want to compare
 		
+	The value returned is in [0,1].
+
+ 	'''
+	simP1P2  =  {}
+	
+	[simP1P2.update({item:1}) for item in prefs[person1] if item in prefs[person2]]
+	
+	return float(len(simP1P2))/ (len(person1) + len(person2) - len(simP1P2))
+	
+
+def sim_cosine(prefs, person1, person2):
+	'''
+	 An implementation of the cosine similarity. The result is the cosine of the angle formed between the two preference vectors.
+	 Note that this similarity does not "center" its data, shifts the user's preference values so that each of their
+	 means is 0. For this behavior, use Pearson Coefficient, which actually is mathematically
+	 equivalent for centered data.	
+	
+	Parameters:
+		the prefs: The preferences in dict format.
+		person1: The user profile you want to compare 
+		person2: The second user profile you want to compare
+	'''
+	
+	def dot(p1,p2):
+		return sum([prefs[p1][item] * prefs[p2][item] for item in prefs[p2]])
+		
+	def norm(p):
+		return sqrt(sum([prefs[p].get(item,0) * prefs[p].get(item,0)  for item in prefs[p]]))
+		
+	
+	if len(prefs[person1]) != len(prefs[person2]):
+		raise ValueError('Size vectors different.')
+		
+	return dot(person1,person2) / (norm(person1) * norm(person2))
+	
 	
 	
 	
