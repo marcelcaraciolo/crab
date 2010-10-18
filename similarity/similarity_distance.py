@@ -22,6 +22,7 @@
                Added sim_euclidian , sim_pearson, sim_spearman
 0.11 2010-10-13 Added sim_cosine, sim_tanimoto
 0.12 2010-10-16 Added sim_loglikehood
+0.13 2010-10-17 Added  sim_sorensen
 
 
 
@@ -240,6 +241,28 @@ def sim_loglikehood(prefs,person1,person2):
 	
 	return 1.0 - 1.0 / (1.0 + logLikeliHood )
 
+def sim_sorensen(prefs,person1,person2):
+	'''
+	The Sørensen index, also known as Sørensen’s similarity coefficient,
+	 is a statistic used for comparing the similarity of two samples. 
+	 It was developed by the botanist Thorvald Sørensen and published in 1948.[1]
+	 See the link: http://en.wikipedia.org/wiki/S%C3%B8rensen_similarity_index
 	
+	This is intended for "binary" data sets where a user either expresses a generic "yes" preference for an
+	item or has no preference. The actual preference values do not matter here, only their presence or absence.
 	
+	Parameters:
+		the prefs: The preferences in dict format.
+		person1: The user profile you want to compare 
+		person2: The second user profile you want to compare
+	
+	'''
+	nP1P2 =  len([ item  for item in prefs[person1] if item in prefs[person2] ])
+	
+	if len(prefs[person1]) + len(prefs[person2]) == 0:
+		return 0.0
+	
+	return float(2.0*nP1P2 / (len(prefs[person1]) + len(prefs[person2]) ) )
+	
+
 	
