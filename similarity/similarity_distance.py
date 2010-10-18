@@ -21,6 +21,8 @@
 0.1 2010-10-11 Initial version.
                Added sim_euclidian , sim_pearson, sim_spearman
 0.11 2010-10-13 Added sim_cosine, sim_tanimoto
+0.12 2010-10-16 Added sim_loglikehood
+
 
 
 
@@ -35,7 +37,7 @@
 
 """
 
-from math import sqrt
+from math import sqrt, log
 
 def sim_euclidian(prefs, person1 , person2):
 	'''
@@ -198,8 +200,46 @@ def sim_cosine(prefs, person1, person2):
 	return dot(person1,person2) / (norm(person1) * norm(person2))
 	
 	
+def sim_loglikehood(prefs,person1,person2):
+	'''
+	See http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.14.5962 and http://tdunning.blogspot.com/2008/03/surprise-and-coincidence.html .
+
+	Parameters:
+		the prefs: The preferences in dict format.
+		person1: The user profile you want to compare 
+		person2: The second user profile you want to compare
+	'''
 	
+	def safeLog(d):
+		if d <= 0.0:
+			return 0.0
+		else:
+			return log(d)		
 	
+	def logL(p,k,n):
+		return k * safeLog(p) + (n - k) * safeLog(1.0 - p)
+	
+	def twoLogLambda(k1,k2,n1,n2):
+		p = (k1 + k2) / (n1 + n2)
+		return 2.0 * (logL(k1/n1,k1,n1)  + logL(k2/n2,k2,n2) 
+					  - logL(p,k1,n1) - logL(p,k2,n2))
+	
+	simP1P2  =  {}
+
+	[simP1P2.update({item:1}) for item in prefs[person1] if item in prefs[person2]]
+	
+	if len(simP1P2) == 0:
+		return 0.0
+	
+	nP1P2 = len(simP1P2)
+	nP2 = len(prefs[person2])
+	nP1 = len(prefs[person1])
+	n = len(prefs)
+	
+	logLikeliHood = twoLogLambda(float(nP1P2), float(nP1 - nP1P2),float(nP2) ,float( n - nP2))
+	
+	return 1.0 - 1.0 / (1.0 + logLikeliHood )
+
 	
 	
 	

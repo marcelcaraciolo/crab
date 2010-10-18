@@ -21,6 +21,7 @@
 0.1 2010-10-11 Initial version.
 				Added tests for sim_euclidian, sim_pearson and sim_spearman
 0.11 2010-10-13 Added tests for sim_tanimoto, sim_cosine
+0.12 2010-10-17 Added tests for sim_loglikehood
 
 '''
 
@@ -35,7 +36,7 @@ __author__ = 'marcel@orygens.com'
 
 import unittest
 
-from similarity.similarity_distance import sim_euclidian,sim_pearson, sim_spearman, sim_tanimoto, sim_cosine
+from similarity.similarity_distance import sim_euclidian,sim_pearson, sim_spearman, sim_tanimoto, sim_cosine, sim_loglikehood
 
 class SimilarityTest(unittest.TestCase):
 	
@@ -92,6 +93,12 @@ class SimilarityTest(unittest.TestCase):
 	def test_empty_rate_cosine_similarity(self):
 		self.assertRaises(ValueError, sim_cosine, self.movies,'Marcel Caraciolo', 'Maria Gabriela')        
 		
+	
+	def test_basic_rate_loglikehood_similarity(self):
+		self.assertAlmostEquals(0.8999736, sim_loglikehood(self.movies,'Marcel Caraciolo', 'Luciana Nunes'))
+
+	def test_empty_rate_loglikehood_similarity(self):
+		self.assertAlmostEquals(0.0, sim_loglikehood(self.movies,'Marcel Caraciolo', 'Maria Gabriela'))
 
 def suite():
 	suite = unittest.TestSuite()
