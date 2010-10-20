@@ -23,7 +23,7 @@
 0.11 2010-10-13 Added sim_cosine, sim_tanimoto
 0.12 2010-10-16 Added sim_loglikehood
 0.13 2010-10-17 Added  sim_sorensen
-
+0.14 2010-10-20 Added sim_manhattan
 
 
 
@@ -263,6 +263,26 @@ def sim_sorensen(prefs,person1,person2):
 		return 0.0
 	
 	return float(2.0*nP1P2 / (len(prefs[person1]) + len(prefs[person2]) ) )
+
+
+def sim_manhattan(prefs,person1,person2):
+	"""The distance between two points in a grid based on a strictly horizontal and/or vertical path (that is, along the grid lines
+		as opposed to the diagonal or "as the crow flies" distance. 
+		The Manhattan distance is the simple sum of the horizontal and vertical components,
+	 	whereas the diagonal distance might be computed by applying the Pythagorean theorem.	
 	
+		Parameters:
+			the prefs: The preferences in dict format.
+			person1: The user profile you want to compare 
+			person2: The second user profile you want to compare
+		
+	"""
+	nP1P2 =  len([ item  for item in prefs[person1] if item in prefs[person2] ])
+	distance = sum([ abs(prefs[person1][key] - prefs[person2][key])   for key in prefs[person1] if key in prefs[person2]])
+	
+	if nP1P2 > 0:
+		return float(distance)/ nP1P2
+	else:
+		return 0.0
 
 	
