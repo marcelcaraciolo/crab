@@ -24,6 +24,7 @@
 0.12 2010-10-17 Added tests for sim_loglikehood
 0.13 2010-10-17 Added tests for sim_sorensen
 0.14 2010-10-20 Added testes for sim_manhattan
+0.15 2010-10-28 Added testes for sim_jaccard
 
 '''
 
@@ -38,7 +39,7 @@ __author__ = 'marcel@orygens.com'
 
 import unittest
 
-from similarity.similarity_distance import *
+from similarities.similarity_distance import *
 
 class SimilarityTest(unittest.TestCase):
 	
@@ -235,6 +236,27 @@ class SimilarityTest(unittest.TestCase):
 
 	def test_values_empty_rate_manhattan_similarity(self):
 		self.assertAlmostEquals(0.0, sim_manhattan([],[]))
+		
+	
+	#Jaccard Tests
+	
+	def test_identity_rate_jaccard_similarity(self):			
+		self.assertAlmostEquals(1.0, sim_jaccard(self.movies['Marcel Caraciolo'], self.movies['Marcel Caraciolo']))
+	
+	def test_dict_basic_rate_jaccard_similarity(self):
+		self.assertAlmostEquals(1.0, sim_jaccard(self.movies['Marcel Caraciolo'],self.movies['Luciana Nunes']))
+		
+	def test_values_basic_rate_jaccard_similarity(self):
+		vector1 = [ item for item in self.movies['Marcel Caraciolo']]
+		vector2 = [ item for item in self.movies['Luciana Nunes']]
+		self.assertAlmostEquals(1.0, sim_jaccard(vector1,vector2))
+		
+	def test_dict_empty_rate_jaccard_similarity(self):
+		self.assertAlmostEquals(0.0, sim_jaccard(self.movies['Marcel Caraciolo'], self.movies['Maria Gabriela']))
+		
+	def test_values_empty_rate_jaccard_similarity(self):
+		self.assertAlmostEquals(0.0, sim_jaccard([],[]))
+	
 
 
 def suite():
