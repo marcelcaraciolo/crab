@@ -29,7 +29,7 @@ import unittest
 from models.datamodel import *
 
 
-class ModelsTest(unittest.TestCase):
+class TestDictModel(unittest.TestCase):
 	
 	def setUp(self):		
 		#SIMILARITY BY RATES.
@@ -144,11 +144,21 @@ class ModelsTest(unittest.TestCase):
 	def test_MinPreference_DictModel(self):
 		model = DictDataModel(self.movies)
 		self.assertEquals(1.0, model.MinPreference())
+	
+	def test_get_item_DictModel(self):
+		model = DictDataModel(self.movies)
+		self.assertEquals([('Just My Luck', 3.0), ('Lady in the Water', 2.5), ('Snakes on a Plane', 3.5), 
+		('Superman Returns', 3.5), ('The Night Listener', 3.0), ('You, Me and Dupree', 2.5)] , model['Marcel Caraciolo'])	
 		
+	def test_iter_DictModel(self):
+		model = DictDataModel(self.movies)
+		elements =  [ pref  for pref in model ]
+		self.assertEquals(('Leopoldo Pires', [('Lady in the Water', 2.5), ('Snakes on a Plane', 3.0), 
+		('Superman Returns', 3.5), ('The Night Listener', 4.0)]), elements[0])
 			
 def suite():
 	suite = unittest.TestSuite()
-	suite.addTests(unittest.makeSuite(ModelsTest))
+	suite.addTests(unittest.makeSuite(TestDictModel))
 	
 	return suite
 

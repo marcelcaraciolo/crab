@@ -243,11 +243,6 @@ def sim_cosine(vector1,vector2,**args):
 	
 	
 	'''
-
-	
-	if len(vector1) != len(vector2):
-		raise ValueError('Size vectors different.')
-	
 	
 	if len(vector1) == 0 or len(vector2) == 0:
 		return 0.0

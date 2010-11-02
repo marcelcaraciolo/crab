@@ -43,7 +43,7 @@ from similarities.similarity import *
 from similarities.similarity_distance import *
 from models.datamodel import *
 
-class SimilarityTest(unittest.TestCase):
+class TestSimilarityDistance(unittest.TestCase):
 	
 	def setUp(self):
 		
@@ -204,7 +204,7 @@ class SimilarityTest(unittest.TestCase):
 	def test_dict_empty_rate_cosine_similarity(self):
 		usr1Prefs = dict(self.model.PreferencesFromUser('Marcel Caraciolo'))
 		usr2Prefs = dict(self.model.PreferencesFromUser('Maria Gabriela'))
-		self.assertRaises(ValueError, sim_cosine,usr1Prefs, usr2Prefs)     
+		self.assertAlmostEquals(0.0, sim_cosine(usr1Prefs,usr2Prefs))
 	
 	def test_values_empty_rate_cosine_similarity(self):
 		self.assertAlmostEquals(0.0, sim_cosine([],[]))
@@ -317,14 +317,57 @@ class SimilarityTest(unittest.TestCase):
 		self.assertAlmostEquals(0.0, sim_jaccard([],[]))
 	
 	
+
+class TestUserSimilarity(unittest.TestCase):
+
+	def setUp(self):
+		#SIMILARITY BY RATES.
+		movies={'Marcel Caraciolo': {'Lady in the Water': 2.5, 'Snakes on a Plane': 3.5,
+		 'Just My Luck': 3.0, 'Superman Returns': 3.5, 'You, Me and Dupree': 2.5, 
+		 'The Night Listener': 3.0},
+		'Luciana Nunes': {'Lady in the Water': 3.0, 'Snakes on a Plane': 3.5, 
+		 'Just My Luck': 1.5, 'Superman Returns': 5.0, 'The Night Listener': 3.0, 
+		 'You, Me and Dupree': 3.5}, 
+		'Leopoldo Pires': {'Lady in the Water': 2.5, 'Snakes on a Plane': 3.0,
+		 'Superman Returns': 3.5, 'The Night Listener': 4.0},
+		'Lorena Abreu': {'Snakes on a Plane': 3.5, 'Just My Luck': 3.0,
+		 'The Night Listener': 4.5, 'Superman Returns': 4.0, 
+		 'You, Me and Dupree': 2.5},
+		'Steve Gates': {'Lady in the Water': 3.0, 'Snakes on a Plane': 4.0, 
+		 'Just My Luck': 2.0, 'Superman Returns': 3.0, 'The Night Listener': 3.0,
+		 'You, Me and Dupree': 2.0}, 
+		'Sheldom': {'Lady in the Water': 3.0, 'Snakes on a Plane': 4.0,
+		 'The Night Listener': 3.0, 'Superman Returns': 5.0, 'You, Me and Dupree': 3.5},
+		'Penny Frewman': {'Snakes on a Plane':4.5,'You, Me and Dupree':1.0,'Superman Returns':4.0},
+		'Maria Gabriela': {}}
+
+		self.model = DictDataModel(movies)
+		
+
 	#User Basic Similarity
 	def test_user_all_similarity(self):
-		pass
+		#Cosine
+		matrix = UserSimilarity(self.model,sim_cosine,3)
+		self.assertTrue([('Marcel Caraciolo', 1.0), ('Steve Gates', 0.98183138566416928), 
+		                 ('Luciana Nunes', 0.96064630139802409)],matrix['Marcel Caraciolo'])
+		#Tanimoto
+		matrix = UserSimilarity(self.model,sim_tanimoto,4)
+		self.assertTrue([('Marcel Caraciolo', 1.0), ('Steve Gates', 0.98183138566416928), 
+		                ('Luciana Nunes', 0.96064630139802409)],matrix['Marcel Caraciolo'])
+	
+	def test_user_one_similarity(self):
+		matrix = UserSimilarity(self.model,sim_cosine,3)
+		self.assertAlmostEquals(0.960646301398,matrix.getSimilarity('Marcel Caraciolo','Luciana Nunes'))
+													
+	def test_user_empty_similarity(self):
+		matrix = UserSimilarity(self.model,sim_cosine,3)
+		self.assertAlmostEquals(0.0,matrix.getSimilarity('Marcel Caraciolo','Maria Gabriela'))
 
 
 def suite():
 	suite = unittest.TestSuite()
-	suite.addTests(unittest.makeSuite(SimilarityTest))
+	suite.addTests(unittest.makeSuite(TestSimilarityDistance))
+	suite.addTests(unittest.makeSuite(TestUserSimilarity))
 	
 	return suite
 
