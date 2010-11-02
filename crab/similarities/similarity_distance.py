@@ -317,11 +317,11 @@ def sim_loglikehood(n,vector1,vector2,**args):
 	
 		if len(simP1P2) == 0:
 			return 0.0
-	
+			
 		nP1P2 = len(simP1P2)
 		nP1 = len(vector1)
 		nP2 = len(vector2)
-
+		
 	else:
 				
 		nP1P2 = len([ item  for item in vector1 if item in vector2])	
@@ -332,10 +332,14 @@ def sim_loglikehood(n,vector1,vector2,**args):
 			
 		nP1 = len(vector1)
 		nP2 = len(vector2)
+			
+	if (nP1 - nP1P2 == 0)  or (n - nP2 == 0):
+		return 1.0
+	
 	
 	logLikeliHood = twoLogLambda(float(nP1P2), float(nP1 - nP1P2),float(nP2) ,float( n - nP2))
-	
-	return 1.0 - 1.0 / (1.0 + logLikeliHood )
+
+	return 1.0 - 1.0 / (1.0 + float(logLikeliHood))
 
 
 

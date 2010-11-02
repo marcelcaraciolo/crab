@@ -41,13 +41,14 @@ import unittest
 
 from similarities.similarity import *
 from similarities.similarity_distance import *
+from models.datamodel import *
 
 class SimilarityTest(unittest.TestCase):
 	
 	def setUp(self):
 		
 		#SIMILARITY BY RATES.
-		self.movies={'Marcel Caraciolo': {'Lady in the Water': 2.5, 'Snakes on a Plane': 3.5,
+		movies={'Marcel Caraciolo': {'Lady in the Water': 2.5, 'Snakes on a Plane': 3.5,
 		 'Just My Luck': 3.0, 'Superman Returns': 3.5, 'You, Me and Dupree': 2.5, 
 		 'The Night Listener': 3.0},
 		'Luciana Nunes': {'Lady in the Water': 3.0, 'Snakes on a Plane': 3.5, 
@@ -65,31 +66,34 @@ class SimilarityTest(unittest.TestCase):
 		 'The Night Listener': 3.0, 'Superman Returns': 5.0, 'You, Me and Dupree': 3.5},
 		'Penny Frewman': {'Snakes on a Plane':4.5,'You, Me and Dupree':1.0,'Superman Returns':4.0},
 		'Maria Gabriela': {}}
-		
-		wordlist = []
-		
-		for user in self.movies:
-			for item in user:
-				if item not in wordlist:
-					wordlist.append(item)
-		self.n = len(wordlist)
+	
+		self.model = DictDataModel(movies)
+	
 	
 	#EUCLIDIAN Tests
 	
 	def test_dict_basic_rate_euclidian_similarity(self):
-		self.assertAlmostEquals(0.29429805508554946, sim_euclidian(self.movies['Marcel Caraciolo'], self.movies['Luciana Nunes']))
+		usr1Prefs = dict(self.model.PreferencesFromUser('Marcel Caraciolo'))
+		usr2Prefs = dict(self.model.PreferencesFromUser('Luciana Nunes'))
+		self.assertAlmostEquals(0.29429805508554946, sim_euclidian(usr1Prefs,usr2Prefs))
 
 	def test_identity_euclidian_similarity(self):
-		self.assertAlmostEquals(1.0, sim_euclidian(self.movies['Marcel Caraciolo'], self.movies['Marcel Caraciolo']))
+		usr1Prefs = dict(self.model.PreferencesFromUser('Marcel Caraciolo'))
+		usr2Prefs = dict(self.model.PreferencesFromUser('Marcel Caraciolo'))
+		self.assertAlmostEquals(1.0, sim_euclidian(usr1Prefs,usr2Prefs))
 		
 	def test_value_basic_rate_euclidian_similarity(self):
-		vector =   [(self.movies['Marcel Caraciolo'][item],self.movies['Luciana Nunes'][item]) for item in self.movies['Marcel Caraciolo'] if item in self.movies['Luciana Nunes']]
+		usr1Prefs = dict(self.model.PreferencesFromUser('Marcel Caraciolo'))
+		usr2Prefs = dict(self.model.PreferencesFromUser('Luciana Nunes'))
+		vector =   [(usr1Prefs[item],usr2Prefs[item]) for item in usr1Prefs if item in usr2Prefs]
 		vector1 = [ v1 for v1,v2 in vector]
 		vector2 = [ v2 for v1,v2 in vector]
 		self.assertAlmostEquals(0.29429805508554946, sim_euclidian(vector1, vector2))
 			
 	def test_dict_empty_rate_euclidian_similarity(self):
-		self.assertAlmostEquals(0.0, sim_euclidian(self.movies['Marcel Caraciolo'], self.movies['Maria Gabriela']))
+		usr1Prefs = dict(self.model.PreferencesFromUser('Marcel Caraciolo'))
+		usr2Prefs = dict(self.model.PreferencesFromUser('Maria Gabriela'))
+		self.assertAlmostEquals(0.0, sim_euclidian(usr1Prefs, usr2Prefs))
 		
 	def test_values_empty_rate_euclidian_similarity(self):
 		self.assertAlmostEquals(0.0, sim_euclidian([], []))
@@ -100,20 +104,28 @@ class SimilarityTest(unittest.TestCase):
 	#PEARSON Tests      
 				
 	def test_dict_basic_rate_pearson_similarity(self):
-		self.assertAlmostEquals(0.396059017, sim_pearson(self.movies['Marcel Caraciolo'], self.movies['Luciana Nunes']))
+		usr1Prefs = dict(self.model.PreferencesFromUser('Marcel Caraciolo'))
+		usr2Prefs = dict(self.model.PreferencesFromUser('Luciana Nunes'))
+		self.assertAlmostEquals(0.396059017, sim_pearson(usr1Prefs,usr2Prefs))
 		
 	def test_identity_pearson_similarity(self):
-		self.assertAlmostEquals(1.0, sim_pearson(self.movies['Marcel Caraciolo'], self.movies['Marcel Caraciolo']))
+		usr1Prefs = dict(self.model.PreferencesFromUser('Marcel Caraciolo'))
+		usr2Prefs = dict(self.model.PreferencesFromUser('Marcel Caraciolo'))
+		self.assertAlmostEquals(1.0, sim_pearson(usr1Prefs,usr2Prefs))
 		
 	def test_value_basic_rate_pearson_similarity(self):
-		vector =   [(self.movies['Marcel Caraciolo'][item],self.movies['Luciana Nunes'][item]) for item in self.movies['Marcel Caraciolo'] if item in self.movies['Luciana Nunes']]
+		usr1Prefs = dict(self.model.PreferencesFromUser('Marcel Caraciolo'))
+		usr2Prefs = dict(self.model.PreferencesFromUser('Luciana Nunes'))
+		vector =   [(usr1Prefs[item],usr2Prefs[item]) for item in usr1Prefs if item in usr2Prefs]
 		vector1 = [ v1 for v1,v2 in vector]
 		vector2 = [ v2 for v1,v2 in vector]
 		self.assertAlmostEquals(0.396059017, sim_pearson(vector1, vector2))
 		
 	
 	def test_dict_empty_rate_pearson_similarity(self):
-		self.assertAlmostEquals(0.0, sim_pearson(self.movies['Marcel Caraciolo'], self.movies['Maria Gabriela']))
+		usr1Prefs = dict(self.model.PreferencesFromUser('Marcel Caraciolo'))
+		usr2Prefs = dict(self.model.PreferencesFromUser('Maria Gabriela'))
+		self.assertAlmostEquals(0.0, sim_pearson(usr1Prefs,usr2Prefs))
 
 	def test_values_empty_rate_pearson_similarity(self):
 		self.assertAlmostEquals(0.0, sim_pearson([], []))
@@ -125,13 +137,19 @@ class SimilarityTest(unittest.TestCase):
 	#SPEARMAN Tests      
 
 	def test_identity_spearman_similarity(self):
-		self.assertAlmostEquals(1.0, sim_spearman(self.movies['Marcel Caraciolo'], self.movies['Marcel Caraciolo']))
+		usr1Prefs = dict(self.model.PreferencesFromUser('Marcel Caraciolo'))
+		usr2Prefs = dict(self.model.PreferencesFromUser('Marcel Caraciolo'))
+		self.assertAlmostEquals(1.0, sim_spearman(usr1Prefs, usr2Prefs))
 
 	def test_basic_rate_spearman_similarity(self):
-		self.assertAlmostEquals(0.5428571428, sim_spearman(self.movies['Marcel Caraciolo'], self.movies['Luciana Nunes']))
+		usr1Prefs = dict(self.model.PreferencesFromUser('Marcel Caraciolo'))
+		usr2Prefs = dict(self.model.PreferencesFromUser('Luciana Nunes'))
+		self.assertAlmostEquals(0.5428571428, sim_spearman(usr1Prefs,usr2Prefs))
 		
 	def test_empty_rate_spearman_similarity(self):
-		self.assertAlmostEquals(0.0, sim_spearman(self.movies['Marcel Caraciolo'], self.movies['Maria Gabriela']))
+		usr1Prefs = dict(self.model.PreferencesFromUser('Marcel Caraciolo'))
+		usr2Prefs = dict(self.model.PreferencesFromUser('Maria Gabriela'))
+		self.assertAlmostEquals(0.0, sim_spearman(usr1Prefs, usr2Prefs))
 	
 	def test_different_sizes_values_rate_pearson_similarity(self):
 		self.assertRaises(TypeError, sim_spearman,[3.5,3.2], [2.0])
@@ -140,18 +158,24 @@ class SimilarityTest(unittest.TestCase):
 	#TANIMOTO Tests
 	
 	def test_identity_tanimoto_similarity(self):
-		self.assertAlmostEquals(1.0, sim_tanimoto(self.movies['Marcel Caraciolo'], self.movies['Marcel Caraciolo']))
+		usr1Prefs = dict(self.model.PreferencesFromUser('Marcel Caraciolo'))
+		usr2Prefs = dict(self.model.PreferencesFromUser('Marcel Caraciolo'))
+		self.assertAlmostEquals(1.0, sim_tanimoto(usr1Prefs, usr2Prefs))
 	
 	def test_dict_basic_rate_tanimoto_similarity(self):
-		self.assertAlmostEquals(1.0, sim_tanimoto(self.movies['Marcel Caraciolo'], self.movies['Luciana Nunes']))
+		usr1Prefs = dict(self.model.PreferencesFromUser('Marcel Caraciolo'))
+		usr2Prefs = dict(self.model.PreferencesFromUser('Luciana Nunes'))
+		self.assertAlmostEquals(1.0, sim_tanimoto(usr1Prefs,usr2Prefs))
 		
 	def test_value_basic_rate_tanimoto_similarity(self):
-		vector1 = [ item for item in self.movies['Marcel Caraciolo']]
-		vector2 = [ item for item in self.movies['Luciana Nunes']]
-		self.assertAlmostEquals(1.0, sim_tanimoto(vector1, vector2))
+		usr1Prefs = self.model.ItemIDsFromUser('Marcel Caraciolo')
+		usr2Prefs = self.model.ItemIDsFromUser('Luciana Nunes')
+		self.assertAlmostEquals(1.0, sim_tanimoto(usr1Prefs, usr2Prefs))
 			
 	def test_dict_empty_rate_tanimoto_similarity(self):
-		self.assertAlmostEquals(0.0, sim_tanimoto(self.movies['Marcel Caraciolo'], self.movies['Maria Gabriela']))
+		usr1Prefs = dict(self.model.PreferencesFromUser('Marcel Caraciolo'))
+		usr2Prefs = dict(self.model.PreferencesFromUser('Maria Gabriela'))
+		self.assertAlmostEquals(0.0, sim_tanimoto(usr1Prefs, usr2Prefs))
 		
 	def test_values_empty_rate_tanimoto_similarity(self):
 		self.assertAlmostEquals(0.0, sim_tanimoto([],[]))
@@ -160,19 +184,27 @@ class SimilarityTest(unittest.TestCase):
 	#COSINE Tests
 	
 	def test_identity_cosine_similarity(self):
-		self.assertAlmostEquals(1.0, sim_tanimoto(self.movies['Marcel Caraciolo'], self.movies['Marcel Caraciolo']))
+		usr1Prefs = dict(self.model.PreferencesFromUser('Marcel Caraciolo'))
+		usr2Prefs = dict(self.model.PreferencesFromUser('Marcel Caraciolo'))
+		self.assertAlmostEquals(1.0, sim_cosine(usr1Prefs,usr2Prefs))
 	
 	def test_dict_basic_rate_cosine_similarity(self):
-		self.assertAlmostEquals(0.960646301, sim_cosine(self.movies['Marcel Caraciolo'],self.movies['Luciana Nunes']))
+		usr1Prefs = dict(self.model.PreferencesFromUser('Marcel Caraciolo'))
+		usr2Prefs = dict(self.model.PreferencesFromUser('Luciana Nunes'))
+		self.assertAlmostEquals(0.960646301, sim_cosine(usr1Prefs,usr2Prefs))
 	
 	def test_values_basic_rate_cosine_similarity(self):
-		vector =   [(self.movies['Marcel Caraciolo'][item],self.movies['Luciana Nunes'][item]) for item in self.movies['Marcel Caraciolo'] if item in self.movies['Luciana Nunes']]
+		usr1Prefs = dict(self.model.PreferencesFromUser('Marcel Caraciolo'))
+		usr2Prefs = dict(self.model.PreferencesFromUser('Luciana Nunes'))
+		vector =   [(usr1Prefs[item],usr2Prefs[item]) for item in usr1Prefs if item in usr2Prefs]
 		vector1 = [ v1 for v1,v2 in vector]
 		vector2 = [ v2 for v1,v2 in vector]
 		self.assertAlmostEquals(0.960646301, sim_cosine(vector1,vector2))
 		
 	def test_dict_empty_rate_cosine_similarity(self):
-		self.assertRaises(ValueError, sim_cosine, self.movies['Marcel Caraciolo'], self.movies['Maria Gabriela'])        
+		usr1Prefs = dict(self.model.PreferencesFromUser('Marcel Caraciolo'))
+		usr2Prefs = dict(self.model.PreferencesFromUser('Maria Gabriela'))
+		self.assertRaises(ValueError, sim_cosine,usr1Prefs, usr2Prefs)     
 	
 	def test_values_empty_rate_cosine_similarity(self):
 		self.assertAlmostEquals(0.0, sim_cosine([],[]))
@@ -180,60 +212,80 @@ class SimilarityTest(unittest.TestCase):
 		
 	#LOGLIKEHOOD Tests
 	
-	def test_identity_sim_loglikehood_similarity(self):			
-		self.assertAlmostEquals(0.96728745329331456, sim_loglikehood(self.n, self.movies['Marcel Caraciolo'], self.movies['Marcel Caraciolo']))
+	def test_identity_sim_loglikehood_similarity(self):
+		usr1Prefs = dict(self.model.PreferencesFromUser('Marcel Caraciolo'))
+		usr2Prefs = dict(self.model.PreferencesFromUser('Marcel Caraciolo'))		
+		self.assertAlmostEquals(1.0, sim_loglikehood(self.model.NumItems(), usr1Prefs, usr2Prefs))
 	
 	def test_dict_basic_rate_sim_loglikehood_similarity(self):
-		self.assertAlmostEquals(0.96728745329331456, sim_loglikehood(self.n, self.movies['Marcel Caraciolo'],self.movies['Luciana Nunes']))
+		usr1Prefs = dict(self.model.PreferencesFromUser('Marcel Caraciolo'))
+		usr2Prefs = dict(self.model.PreferencesFromUser('Lorena Abreu'))
+		self.assertAlmostEquals(0.0, sim_loglikehood(self.model.NumItems(),usr1Prefs,usr2Prefs))	
 	
 	def test_values_basic_rate_sim_loglikehood_similarity(self):
-		vector1 = [ item for item in self.movies['Marcel Caraciolo']]
-		vector2 = [ item for item in self.movies['Luciana Nunes']]
-		self.assertAlmostEquals(0.96728745329331456, sim_loglikehood(self.n, vector1,vector2))
+		usr1Prefs = self.model.ItemIDsFromUser('Marcel Caraciolo')
+		usr2Prefs = self.model.ItemIDsFromUser('Lorena Abreu')
+		self.assertAlmostEquals(0.0, sim_loglikehood(self.model.NumItems(), usr1Prefs,usr2Prefs))
 		
 	def test_dict_empty_rate_sim_loglikehood_similarity(self):
-		self.assertAlmostEquals(0.0, sim_loglikehood(self.n, self.movies['Marcel Caraciolo'], self.movies['Maria Gabriela']))       
+		usr1Prefs = dict(self.model.PreferencesFromUser('Marcel Caraciolo'))
+		usr2Prefs = dict(self.model.PreferencesFromUser('Maria Gabriela'))
+		self.assertAlmostEquals(0.0, sim_loglikehood(self.model.NumItems(), usr1Prefs,usr2Prefs))       
 	
 	def test_values_empty_rate_sim_loglikehood_similarity(self):
-		self.assertAlmostEquals(0.0, sim_loglikehood(self.n,[],[]))
+		self.assertAlmostEquals(0.0, sim_loglikehood(self.model.NumItems(),[],[]))
 	
 	
 	#SORENSEN Tests
 	
-	def test_identity_rate_sorensen_similarity(self):			
-		self.assertAlmostEquals(1.0, sim_sorensen(self.movies['Marcel Caraciolo'], self.movies['Marcel Caraciolo']))
+	def test_identity_rate_sorensen_similarity(self):
+		usr1Prefs = dict(self.model.PreferencesFromUser('Marcel Caraciolo'))
+		usr2Prefs = dict(self.model.PreferencesFromUser('Marcel Caraciolo'))			
+		self.assertAlmostEquals(1.0, sim_sorensen(usr1Prefs,usr2Prefs))
 	
 	def test_dict_basic_rate_sorensen_similarity(self):
-		self.assertAlmostEquals(1.0, sim_sorensen(self.movies['Marcel Caraciolo'],self.movies['Luciana Nunes']))
+		usr1Prefs = dict(self.model.PreferencesFromUser('Marcel Caraciolo'))
+		usr2Prefs = dict(self.model.PreferencesFromUser('Luciana Nunes'))
+		self.assertAlmostEquals(1.0, sim_sorensen(usr1Prefs,usr2Prefs))
 		
 	def test_values_basic_rate_sorensen_similarity(self):
-		vector1 = [ item for item in self.movies['Marcel Caraciolo']]
-		vector2 = [ item for item in self.movies['Luciana Nunes']]
-		self.assertAlmostEquals(1.0, sim_sorensen(vector1,vector2))
+		usr1Prefs = self.model.ItemIDsFromUser('Marcel Caraciolo')
+		usr2Prefs = self.model.ItemIDsFromUser('Luciana Nunes')
+		self.assertAlmostEquals(1.0, sim_sorensen(usr1Prefs,usr2Prefs))
 		
 	def test_dict_empty_rate_sorensen_similarity(self):
-		self.assertAlmostEquals(0.0, sim_sorensen(self.movies['Marcel Caraciolo'], self.movies['Maria Gabriela']))
+		usr1Prefs = dict(self.model.PreferencesFromUser('Marcel Caraciolo'))
+		usr2Prefs = dict(self.model.PreferencesFromUser('Maria Gabriela'))
+		self.assertAlmostEquals(0.0, sim_sorensen(usr1Prefs, usr2Prefs))
 		
 	def test_values_empty_rate_sorensen_similarity(self):
 		self.assertAlmostEquals(0.0, sim_sorensen([],[]))
 		
 	#Manhanttan Tests
 	
-	def test_identity_rate_manhattan_similarity(self):			
-		self.assertAlmostEquals(1.0, sim_manhattan(self.movies['Marcel Caraciolo'], self.movies['Marcel Caraciolo']))
+	def test_identity_rate_manhattan_similarity(self):	
+		usr1Prefs = dict(self.model.PreferencesFromUser('Marcel Caraciolo'))
+		usr2Prefs = dict(self.model.PreferencesFromUser('Marcel Caraciolo'))
+		self.assertAlmostEquals(1.0, sim_manhattan(usr1Prefs, usr2Prefs))
 		
 	def test_dict_basic_rate_manhattan_similarity(self):
-		self.assertAlmostEquals(0.25, sim_manhattan(self.movies['Marcel Caraciolo'], self.movies['Luciana Nunes']))
+		usr1Prefs = dict(self.model.PreferencesFromUser('Marcel Caraciolo'))
+		usr2Prefs = dict(self.model.PreferencesFromUser('Luciana Nunes'))
+		self.assertAlmostEquals(0.25, sim_manhattan(usr1Prefs,usr2Prefs))
 		
 		
 	def test_values_basic_rate_manhattan_similarity(self):
-		vector =   [(self.movies['Marcel Caraciolo'][item],self.movies['Luciana Nunes'][item]) for item in self.movies['Marcel Caraciolo'] if item in self.movies['Luciana Nunes']]
+		usr1Prefs = dict(self.model.PreferencesFromUser('Marcel Caraciolo'))
+		usr2Prefs = dict(self.model.PreferencesFromUser('Luciana Nunes'))
+		vector =   [(usr1Prefs[item],usr2Prefs[item]) for item in usr1Prefs if item in usr2Prefs]
 		vector1 = [ v1 for v1,v2 in vector]
 		vector2 = [ v2 for v1,v2 in vector]
 		self.assertAlmostEquals(0.25, sim_manhattan(vector1,vector2))
 
 	def test_dict_empty_rate_manhattan_similarity(self):
-		self.assertAlmostEquals(0.0, sim_manhattan(self.movies['Marcel Caraciolo'], self.movies['Maria Gabriela']))
+		usr1Prefs = dict(self.model.PreferencesFromUser('Marcel Caraciolo'))
+		usr2Prefs = dict(self.model.PreferencesFromUser('Maria Gabriela'))
+		self.assertAlmostEquals(0.0, sim_manhattan(usr1Prefs, usr2Prefs))
 
 	def test_values_empty_rate_manhattan_similarity(self):
 		self.assertAlmostEquals(0.0, sim_manhattan([],[]))
@@ -241,19 +293,25 @@ class SimilarityTest(unittest.TestCase):
 	
 	#Jaccard Tests
 	
-	def test_identity_rate_jaccard_similarity(self):			
-		self.assertAlmostEquals(1.0, sim_jaccard(self.movies['Marcel Caraciolo'], self.movies['Marcel Caraciolo']))
+	def test_identity_rate_jaccard_similarity(self):
+		usr1Prefs = dict(self.model.PreferencesFromUser('Marcel Caraciolo'))
+		usr2Prefs = dict(self.model.PreferencesFromUser('Marcel Caraciolo'))			
+		self.assertAlmostEquals(1.0, sim_jaccard(usr1Prefs,usr2Prefs))
 	
 	def test_dict_basic_rate_jaccard_similarity(self):
-		self.assertAlmostEquals(1.0, sim_jaccard(self.movies['Marcel Caraciolo'],self.movies['Luciana Nunes']))
+		usr1Prefs = dict(self.model.PreferencesFromUser('Marcel Caraciolo'))
+		usr2Prefs = dict(self.model.PreferencesFromUser('Luciana Nunes'))
+		self.assertAlmostEquals(1.0, sim_jaccard(usr1Prefs,usr2Prefs))
 		
 	def test_values_basic_rate_jaccard_similarity(self):
-		vector1 = [ item for item in self.movies['Marcel Caraciolo']]
-		vector2 = [ item for item in self.movies['Luciana Nunes']]
-		self.assertAlmostEquals(1.0, sim_jaccard(vector1,vector2))
+		usr1Prefs = self.model.ItemIDsFromUser('Marcel Caraciolo')
+		usr2Prefs = self.model.ItemIDsFromUser('Luciana Nunes')
+		self.assertAlmostEquals(1.0, sim_jaccard(usr1Prefs,usr2Prefs))
 		
 	def test_dict_empty_rate_jaccard_similarity(self):
-		self.assertAlmostEquals(0.0, sim_jaccard(self.movies['Marcel Caraciolo'], self.movies['Maria Gabriela']))
+		usr1Prefs = dict(self.model.PreferencesFromUser('Marcel Caraciolo'))
+		usr2Prefs = dict(self.model.PreferencesFromUser('Maria Gabriela'))
+		self.assertAlmostEquals(0.0, sim_jaccard(usr1Prefs,usr2Prefs))
 		
 	def test_values_empty_rate_jaccard_similarity(self):
 		self.assertAlmostEquals(0.0, sim_jaccard([],[]))
@@ -272,6 +330,3 @@ def suite():
 
 if __name__ == '__main__':
 	unittest.main()
-
-
-

@@ -171,8 +171,11 @@ class DictDataModel(DataModel):
 		
 		
 	def __getitem__(self,userID):
-		return self.dataU.get(userID)		
-	
+		return self.PreferencesFromUser(userID)		
+
+	def __iter__(self):
+		for num, user in enumerate(self.userIDs):
+			yield user,self[user]
 				
 	def buildModel(self):
 		''' Build the model '''
