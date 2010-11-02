@@ -39,6 +39,7 @@ __author__ = 'marcel@orygens.com'
 
 import unittest
 
+from similarities.similarity import *
 from similarities.similarity_distance import *
 
 class SimilarityTest(unittest.TestCase):
@@ -257,6 +258,10 @@ class SimilarityTest(unittest.TestCase):
 	def test_values_empty_rate_jaccard_similarity(self):
 		self.assertAlmostEquals(0.0, sim_jaccard([],[]))
 	
+	
+	#User Basic Similarity
+	def test_user_all_similarity(self):
+		pass
 
 
 def suite():

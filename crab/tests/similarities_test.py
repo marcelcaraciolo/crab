@@ -24,21 +24,16 @@
 0.12 2010-10-17 Added tests for sim_loglikehood
 0.13 2010-10-17 Added tests for sim_sorensen
 0.14 2010-10-20 Added testes for sim_manhattan
+0.15 2010-10-28 Added testes for sim_jaccard
 
 '''
-
-"""
-:mod:`similarities_test` -- the similarity evaluation tests
-================================================================
-		
-
-"""
 
 __author__ = 'marcel@orygens.com'
 
 import unittest
 
-from similarity.similarity_distance import *
+from similarities.similarity import *
+from similarities.similarity_distance import *
 
 class SimilarityTest(unittest.TestCase):
 	
@@ -63,50 +58,203 @@ class SimilarityTest(unittest.TestCase):
 		 'The Night Listener': 3.0, 'Superman Returns': 5.0, 'You, Me and Dupree': 3.5},
 		'Penny Frewman': {'Snakes on a Plane':4.5,'You, Me and Dupree':1.0,'Superman Returns':4.0},
 		'Maria Gabriela': {}}
-	
-	
-	def test_basic_rate_euclidian_similarity(self):
-		self.assertAlmostEquals(0.148148148148148, sim_euclidian(self.movies,'Marcel Caraciolo', 'Luciana Nunes'))
 		
-	def test_empty_rate_euclidian_similarity(self):
-		self.assertAlmostEquals(0.0, sim_euclidian(self.movies,'Marcel Caraciolo', 'Maria Gabriela'))
+		wordlist = []
 		
-	def test_basic_rate_pearson_similarity(self):
-		self.assertAlmostEquals(0.396059017, sim_pearson(self.movies,'Marcel Caraciolo', 'Luciana Nunes'))
+		for user in self.movies:
+			for item in user:
+				if item not in wordlist:
+					wordlist.append(item)
+		self.n = len(wordlist)
+	
+	#EUCLIDIAN Tests
+	
+	def test_dict_basic_rate_euclidian_similarity(self):
+		self.assertAlmostEquals(0.29429805508554946, sim_euclidian(self.movies['Marcel Caraciolo'], self.movies['Luciana Nunes']))
 
-	def test_empty_rate_pearson_similarity(self):
-		self.assertAlmostEquals(0, sim_pearson(self.movies,'Marcel Caraciolo', 'Maria Gabriela'))
+	def test_identity_euclidian_similarity(self):
+		self.assertAlmostEquals(1.0, sim_euclidian(self.movies['Marcel Caraciolo'], self.movies['Marcel Caraciolo']))
 		
+	def test_value_basic_rate_euclidian_similarity(self):
+		vector =   [(self.movies['Marcel Caraciolo'][item],self.movies['Luciana Nunes'][item]) for item in self.movies['Marcel Caraciolo'] if item in self.movies['Luciana Nunes']]
+		vector1 = [ v1 for v1,v2 in vector]
+		vector2 = [ v2 for v1,v2 in vector]
+		self.assertAlmostEquals(0.29429805508554946, sim_euclidian(vector1, vector2))
+			
+	def test_dict_empty_rate_euclidian_similarity(self):
+		self.assertAlmostEquals(0.0, sim_euclidian(self.movies['Marcel Caraciolo'], self.movies['Maria Gabriela']))
+		
+	def test_values_empty_rate_euclidian_similarity(self):
+		self.assertAlmostEquals(0.0, sim_euclidian([], []))
+		
+	def test_different_sizes_values_rate_euclidian_similarity(self):
+		self.assertRaises(ValueError, sim_euclidian,[3.5,3.2], [2.0])  
+		
+	#PEARSON Tests      
+				
+	def test_dict_basic_rate_pearson_similarity(self):
+		self.assertAlmostEquals(0.396059017, sim_pearson(self.movies['Marcel Caraciolo'], self.movies['Luciana Nunes']))
+		
+	def test_identity_pearson_similarity(self):
+		self.assertAlmostEquals(1.0, sim_pearson(self.movies['Marcel Caraciolo'], self.movies['Marcel Caraciolo']))
+		
+	def test_value_basic_rate_pearson_similarity(self):
+		vector =   [(self.movies['Marcel Caraciolo'][item],self.movies['Luciana Nunes'][item]) for item in self.movies['Marcel Caraciolo'] if item in self.movies['Luciana Nunes']]
+		vector1 = [ v1 for v1,v2 in vector]
+		vector2 = [ v2 for v1,v2 in vector]
+		self.assertAlmostEquals(0.396059017, sim_pearson(vector1, vector2))
+		
+	
+	def test_dict_empty_rate_pearson_similarity(self):
+		self.assertAlmostEquals(0.0, sim_pearson(self.movies['Marcel Caraciolo'], self.movies['Maria Gabriela']))
+
+	def test_values_empty_rate_pearson_similarity(self):
+		self.assertAlmostEquals(0.0, sim_pearson([], []))
+
+	def test_different_sizes_values_rate_pearson_similarity(self):
+		self.assertRaises(ValueError, sim_pearson,[3.5,3.2], [2.0])		
+
+
+	#SPEARMAN Tests      
+
+	def test_identity_spearman_similarity(self):
+		self.assertAlmostEquals(1.0, sim_spearman(self.movies['Marcel Caraciolo'], self.movies['Marcel Caraciolo']))
+
 	def test_basic_rate_spearman_similarity(self):
-		self.assertAlmostEquals(0.5428571428, sim_spearman(self.movies,'Marcel Caraciolo', 'Luciana Nunes'))
+		self.assertAlmostEquals(0.5428571428, sim_spearman(self.movies['Marcel Caraciolo'], self.movies['Luciana Nunes']))
 		
 	def test_empty_rate_spearman_similarity(self):
-		self.assertAlmostEquals(0, sim_pearson(self.movies,'Marcel Caraciolo', 'Maria Gabriela'))
+		self.assertAlmostEquals(0.0, sim_spearman(self.movies['Marcel Caraciolo'], self.movies['Maria Gabriela']))
 	
-	def test_basic_rate_tanimoto_similarity(self):
-		self.assertAlmostEquals(0.26086956, sim_tanimoto(self.movies,'Marcel Caraciolo', 'Luciana Nunes'))
-			
-	def test_empty_rate_tanimoto_similarity(self):
-		self.assertAlmostEquals(0.0, sim_tanimoto(self.movies,'Marcel Caraciolo', 'Maria Gabriela'))
+	def test_different_sizes_values_rate_pearson_similarity(self):
+		self.assertRaises(TypeError, sim_spearman,[3.5,3.2], [2.0])
 	
-	def test_basic_rate_cosine_similarity(self):
-		self.assertAlmostEquals(0.960646301, sim_cosine(self.movies,'Marcel Caraciolo', 'Luciana Nunes'))
 
-	def test_empty_rate_cosine_similarity(self):
-		self.assertRaises(ValueError, sim_cosine, self.movies,'Marcel Caraciolo', 'Maria Gabriela')        
+	#TANIMOTO Tests
 	
-	def test_basic_rate_sorensen_similarity(self):
-		self.assertAlmostEquals(1.0, sim_sorensen(self.movies,'Marcel Caraciolo', 'Luciana Nunes'))
-
-	def test_empty_rate_sorensen_similarity(self):
-		self.assertAlmostEquals(0.0, sim_sorensen(self.movies,'Marcel Caraciolo', 'Maria Gabriela'))
+	def test_identity_tanimoto_similarity(self):
+		self.assertAlmostEquals(1.0, sim_tanimoto(self.movies['Marcel Caraciolo'], self.movies['Marcel Caraciolo']))
+	
+	def test_dict_basic_rate_tanimoto_similarity(self):
+		self.assertAlmostEquals(1.0, sim_tanimoto(self.movies['Marcel Caraciolo'], self.movies['Luciana Nunes']))
 		
-	def test_basic_rate_manhattan_similarity(self):
-		self.assertAlmostEquals(0.75, sim_manhattan(self.movies,'Marcel Caraciolo', 'Luciana Nunes'))
+	def test_value_basic_rate_tanimoto_similarity(self):
+		vector1 = [ item for item in self.movies['Marcel Caraciolo']]
+		vector2 = [ item for item in self.movies['Luciana Nunes']]
+		self.assertAlmostEquals(1.0, sim_tanimoto(vector1, vector2))
+			
+	def test_dict_empty_rate_tanimoto_similarity(self):
+		self.assertAlmostEquals(0.0, sim_tanimoto(self.movies['Marcel Caraciolo'], self.movies['Maria Gabriela']))
+		
+	def test_values_empty_rate_tanimoto_similarity(self):
+		self.assertAlmostEquals(0.0, sim_tanimoto([],[]))
+	
+	
+	#COSINE Tests
+	
+	def test_identity_cosine_similarity(self):
+		self.assertAlmostEquals(1.0, sim_tanimoto(self.movies['Marcel Caraciolo'], self.movies['Marcel Caraciolo']))
+	
+	def test_dict_basic_rate_cosine_similarity(self):
+		self.assertAlmostEquals(0.960646301, sim_cosine(self.movies['Marcel Caraciolo'],self.movies['Luciana Nunes']))
+	
+	def test_values_basic_rate_cosine_similarity(self):
+		vector =   [(self.movies['Marcel Caraciolo'][item],self.movies['Luciana Nunes'][item]) for item in self.movies['Marcel Caraciolo'] if item in self.movies['Luciana Nunes']]
+		vector1 = [ v1 for v1,v2 in vector]
+		vector2 = [ v2 for v1,v2 in vector]
+		self.assertAlmostEquals(0.960646301, sim_cosine(vector1,vector2))
+		
+	def test_dict_empty_rate_cosine_similarity(self):
+		self.assertRaises(ValueError, sim_cosine, self.movies['Marcel Caraciolo'], self.movies['Maria Gabriela'])        
+	
+	def test_values_empty_rate_cosine_similarity(self):
+		self.assertAlmostEquals(0.0, sim_cosine([],[]))
+		
+		
+	#LOGLIKEHOOD Tests
+	
+	def test_identity_sim_loglikehood_similarity(self):			
+		self.assertAlmostEquals(0.96728745329331456, sim_loglikehood(self.n, self.movies['Marcel Caraciolo'], self.movies['Marcel Caraciolo']))
+	
+	def test_dict_basic_rate_sim_loglikehood_similarity(self):
+		self.assertAlmostEquals(0.96728745329331456, sim_loglikehood(self.n, self.movies['Marcel Caraciolo'],self.movies['Luciana Nunes']))
+	
+	def test_values_basic_rate_sim_loglikehood_similarity(self):
+		vector1 = [ item for item in self.movies['Marcel Caraciolo']]
+		vector2 = [ item for item in self.movies['Luciana Nunes']]
+		self.assertAlmostEquals(0.96728745329331456, sim_loglikehood(self.n, vector1,vector2))
+		
+	def test_dict_empty_rate_sim_loglikehood_similarity(self):
+		self.assertAlmostEquals(0.0, sim_loglikehood(self.n, self.movies['Marcel Caraciolo'], self.movies['Maria Gabriela']))       
+	
+	def test_values_empty_rate_sim_loglikehood_similarity(self):
+		self.assertAlmostEquals(0.0, sim_loglikehood(self.n,[],[]))
+	
+	
+	#SORENSEN Tests
+	
+	def test_identity_rate_sorensen_similarity(self):			
+		self.assertAlmostEquals(1.0, sim_sorensen(self.movies['Marcel Caraciolo'], self.movies['Marcel Caraciolo']))
+	
+	def test_dict_basic_rate_sorensen_similarity(self):
+		self.assertAlmostEquals(1.0, sim_sorensen(self.movies['Marcel Caraciolo'],self.movies['Luciana Nunes']))
+		
+	def test_values_basic_rate_sorensen_similarity(self):
+		vector1 = [ item for item in self.movies['Marcel Caraciolo']]
+		vector2 = [ item for item in self.movies['Luciana Nunes']]
+		self.assertAlmostEquals(1.0, sim_sorensen(vector1,vector2))
+		
+	def test_dict_empty_rate_sorensen_similarity(self):
+		self.assertAlmostEquals(0.0, sim_sorensen(self.movies['Marcel Caraciolo'], self.movies['Maria Gabriela']))
+		
+	def test_values_empty_rate_sorensen_similarity(self):
+		self.assertAlmostEquals(0.0, sim_sorensen([],[]))
+		
+	#Manhanttan Tests
+	
+	def test_identity_rate_manhattan_similarity(self):			
+		self.assertAlmostEquals(1.0, sim_manhattan(self.movies['Marcel Caraciolo'], self.movies['Marcel Caraciolo']))
+		
+	def test_dict_basic_rate_manhattan_similarity(self):
+		self.assertAlmostEquals(0.25, sim_manhattan(self.movies['Marcel Caraciolo'], self.movies['Luciana Nunes']))
+		
+		
+	def test_values_basic_rate_manhattan_similarity(self):
+		vector =   [(self.movies['Marcel Caraciolo'][item],self.movies['Luciana Nunes'][item]) for item in self.movies['Marcel Caraciolo'] if item in self.movies['Luciana Nunes']]
+		vector1 = [ v1 for v1,v2 in vector]
+		vector2 = [ v2 for v1,v2 in vector]
+		self.assertAlmostEquals(0.25, sim_manhattan(vector1,vector2))
 
-	def test_empty_rate_manhattan_similarity(self):
-		self.assertAlmostEquals(0.0, sim_manhattan(self.movies,'Marcel Caraciolo', 'Maria Gabriela'))
+	def test_dict_empty_rate_manhattan_similarity(self):
+		self.assertAlmostEquals(0.0, sim_manhattan(self.movies['Marcel Caraciolo'], self.movies['Maria Gabriela']))
 
+	def test_values_empty_rate_manhattan_similarity(self):
+		self.assertAlmostEquals(0.0, sim_manhattan([],[]))
+		
+	
+	#Jaccard Tests
+	
+	def test_identity_rate_jaccard_similarity(self):			
+		self.assertAlmostEquals(1.0, sim_jaccard(self.movies['Marcel Caraciolo'], self.movies['Marcel Caraciolo']))
+	
+	def test_dict_basic_rate_jaccard_similarity(self):
+		self.assertAlmostEquals(1.0, sim_jaccard(self.movies['Marcel Caraciolo'],self.movies['Luciana Nunes']))
+		
+	def test_values_basic_rate_jaccard_similarity(self):
+		vector1 = [ item for item in self.movies['Marcel Caraciolo']]
+		vector2 = [ item for item in self.movies['Luciana Nunes']]
+		self.assertAlmostEquals(1.0, sim_jaccard(vector1,vector2))
+		
+	def test_dict_empty_rate_jaccard_similarity(self):
+		self.assertAlmostEquals(0.0, sim_jaccard(self.movies['Marcel Caraciolo'], self.movies['Maria Gabriela']))
+		
+	def test_values_empty_rate_jaccard_similarity(self):
+		self.assertAlmostEquals(0.0, sim_jaccard([],[]))
+	
+	
+	#User Basic Similarity
+	def test_user_all_similarity(self):
+		pass
 
 
 def suite():
