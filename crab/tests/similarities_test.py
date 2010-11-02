@@ -28,6 +28,13 @@
 
 '''
 
+"""
+:mod:`similarities_test` -- the similarity evaluation tests
+================================================================
+		
+
+"""
+
 __author__ = 'marcel@orygens.com'
 
 import unittest
