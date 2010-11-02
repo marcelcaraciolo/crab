@@ -41,7 +41,7 @@ class UserSimilarity(Similarity):
 	'''
 	Returns the degree of similarity, of two users, based on the their preferences.
 	Implementations of this class define a notion of similarity between two users. 
-	Implementations should  return values in the range -1.0 to 1.0, with 1.0 representing 
+	Implementations should  return values in the range 0.0 to 1.0, with 1.0 representing 
 	perfect similarity.
 	'''
 	
@@ -68,4 +68,35 @@ class UserSimilarity(Similarity):
 		"""
 		for num, user, vec in enumerate(self.model):
 			yield self[user]
-			
+
+
+
+class ItemSimilarity(Similarity):
+	'''
+	Returns the degree of similarity, of two items, based on its preferences by the users.
+	Implementations of this class define a notion of similarity between two items. 
+	Implementations should  return values in the range 0.0 to 1.0, with 1.0 representing 
+	perfect similarity.
+	'''
+
+	def __init__ (self,model,distance,numBest=None):
+		Similarity.__init__(self,model,distance,numBest)
+
+
+	def getSimilarity(self,vec1,vec2):
+		item1Prefs = dict(self.model.PreferencesForItem(vec1))
+		item2Prefs = dict(self.model.PreferencesForItem(vec2))
+
+		#Evaluate the similarity between the two users vectors.	
+		return self.distance(item1Prefs,item2Prefs)
+
+	def getSimilarities(self,vec):
+
+		return [(other,self.getSimilarity(vec,other)) for other in self.model.ItemIDs()]
+
+	def __iter__(self):
+		"""
+		For each object in model, compute the similarity function against all other objects and yield the result. 
+		"""
+		for num, item in enumerate(self.model.ItemIDs()):
+			yield item,self.PreferencesForItem(userID)
