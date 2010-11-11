@@ -81,8 +81,7 @@ def sim_euclidian(vector1,vector2,**args):
 		if not sum_of_squares:
 			return 0.0
 	
-	return 1 / (1+ sqrt(sum_of_squares))
-	
+	return 1 / (1+ sqrt(sum_of_squares))	
 	
 
 def sim_pearson(vector1,vector2,**args):

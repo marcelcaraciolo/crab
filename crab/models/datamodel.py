@@ -21,6 +21,7 @@
 #REVISION HISTORY
 
 #0.1 2010-11-01  Initial version.
+#0.2 2010-11-11 Changed the method preferenceValue implementation to use get(userID) and get(itemID)
 
 
 """
@@ -245,7 +246,7 @@ class DictDataModel(DataModel):
 		return itemPrefs	
 
 	def PreferenceValue(self,userID,itemID):
-		return self.dataU[userID][itemID]
+		return self.dataU.get(userID).get(itemID,None)
 	
 	def NumUsers(self):
 		return len(self.dataU)

@@ -144,10 +144,14 @@ class Recommender(object):
 		raise NotImplementedError("cannot instantiate Abstract Base Class")
 
 
-	def estimatePreference(self,**args):
+	def estimatePreference(self,userID,itemID):
 		'''
 		Return an estimated preference if the user has not expressed a preference for the item, or else the 
-		user's actual preference for the item. If a preference cannot be estimated, returns None.
+		user's actual preference for the item. If a preference cannot be estimated, returns None
+		
+		`userID`   user ID whose preference is to be estimated
+		
+		`itemID`  item ID to estimate preference for
 		
 		'''
 		raise NotImplementedError("cannot instantiate Abstract Base Class")
@@ -212,16 +216,13 @@ class Neighborhood(object):
 		Return IDs of users in the neighborhood
 		'''
 		raise NotImplementedError("cannot instantiate Abstract Base Class")
-		
-		
-class Scorer(object):
-	'''
-	Implementations of this interface computes a new 'score' to a object such as an ID of an item or user
-	which a Recommender is considering returning as a top recommendation.
-	'''
-
-	def rescore(self,thing,score):
+	
+	
+	def estimatePreference(self,**args):
 		'''
-		Return modified score.
+		Estimate a preference for an item/user.
 		'''
 		raise NotImplementedError("cannot instantiate Abstract Base Class")
+		
+		
+		
