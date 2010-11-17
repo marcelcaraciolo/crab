@@ -18,10 +18,6 @@
 # limitations under the License.
 #========================================================================
 
-#REVISION HISTORY
-
-#0.1 2010-10-31  Initial version.
-#0.11 2010-11-04 Added Recommender Abstract Class and Neighborhood Abstract class.
 
 
 """
@@ -193,8 +189,41 @@ class UserBasedRecommender(Recommender):
 		`rescorer`  which can adjust user-user similarity estimates used to determine most similar
 		'''
 		raise NotImplementedError("cannot instantiate Abstract Base Class")		
+		
+class ItemBasedRecommender(Recommender):
+	'''
+	Interface implemented by "item-based" recommenders.
+	'''
 	
+	def __init__(self,model):
+ 		""" The constructor of Similarity class 
 
+		`model` defines the data model where data is fetched.
+
+		"""
+		Recommender.__init__(self,model)
+	
+	def mostSimilarItems(self,itemIDs,howMany,rescorer=None):
+		'''
+		 Returns items most similar to the given item, ordered from most similar to leas		
+		`itemIDs` IDs of item for which to find most similar other items.
+		`howMany` the number of most similar items to find
+		`rescorer`  which can adjust item-item similarity estimates used to determine most similar
+		'''
+		raise NotImplementedError("cannot instantiate Abstract Base Class")
+	
+	
+	def recommendedBecause(self,userID,itemID,howMany,rescorer=None):
+		'''
+		Return a list of recommended items, ordered from most influential in recommended the given
+		item to least
+		`userID`  ID of the user who was recommended the item	
+		`itemID` IDs of item was recommended.
+		`howMany` the maximum number of items
+		`rescorer`  which can adjust item-item similarity estimates used to determine most similar
+		'''
+		raise NotImplementedError("cannot instantiate Abstract Base Class")
+		
 		
 class Neighborhood(object):
 	''' 
@@ -213,6 +242,16 @@ class Neighborhood(object):
 		'''
 		raise NotImplementedError("cannot instantiate Abstract Base Class")
 		
+
+class CandidateItemsStrategy(object):
+	'''
+	 Used to retrieve all items that could possibly be recommended to the user
+	'''
+	
+	def candidateItems(self,userID,model):
+		raise NotImplementedError("cannot instantiate Abstract Base Class")
+
+	
 		
 class Scorer(object):
 	'''

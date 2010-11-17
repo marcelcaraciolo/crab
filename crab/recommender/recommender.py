@@ -18,10 +18,6 @@
 # limitations under the License.
 #========================================================================
 
-#REVISION HISTORY
-
-#0.1 2010-11-04  Initial version.
-
 
 
 """
@@ -32,7 +28,7 @@ This module contains functions and classes to produce recommendations.
 
 """
 
-from interfaces import UserBasedRecommender
+from interfaces import UserBasedRecommender, ItemBasedRecommender
 from topmatches import topUsers, topItems
 
 class UserRecommender(UserBasedRecommender):
@@ -134,4 +130,160 @@ class UserRecommender(UserBasedRecommender):
 		possibleItemIDs = list(set(possibleItemIDs))
 		
 		return [itemID for itemID in possibleItemIDs if itemID not in itemIds]		
+
+
+
+class ItemRecommender(ItemBasedRecommender):
+	'''
+	A simple recommender which uses a given DataModel and ItemSimilarity to produce recommendations. This class
+	represents a support for item based recommenders.
+	'''
+	def __init__(self,model,similarity,itemStrategy,capper=True):
+		''' UserBasedRecommender Class Constructor 
+			
+			`model` is the data source model
+			
+			`itemStrategy` is the candidate item strategy for computing the most similar items.
+			
+			`similarity` is the class used for computing the similarities over the items.
+			
+			`capper` a normalizer for Maximum/Minimum Preferences range.
+			
+		'''
+		ItemBasedRecommender.__init__(self,model)
+		self.strategy = itemStrategy
+		self.similarity  = similarity
+		self.capper = capper
+	
+	
+	def recommend(self,userID,howMany,rescorer=None):
 		
+		if self.numPreferences(userID) == 0:
+			return []
+		
+		possibleItemIDs = self.allOtherItems(userID)
+		
+		rec_items = topItems(userID,possibleItemIDs,howMany,self.estimatePreference,self.similarity,rescorer)
+
+		return rec_items
+		
+		
+	def allOtherItems(self,userID):
+		return self.strategy.candidateItems(userID,self.model)
+	
+	
+	def estimateMultiItemsPreference(self,**args):
+		toItemIDs = args.get('thingID',None)
+		itemID = args.get('itemID',None)
+		similarity = args.get('similarity',self.similarity)
+		rescorer = args.get('rescorer',None)
+		
+		sum = 0.0
+		total = 0
+		
+		for toItemID in toItemIDs:
+			preference = similarity.getSimilarity(itemID,toItemID)
+			
+			rescoredPref =  rescorer.rescore((itemID,toItemID),preference) if rescorer else preference
+			
+			sum+=rescoredPref
+			total+=1
+		
+		return sum/total
+
+
+	def numPreferences(self,userID):
+		    return len(self.model.PreferencesFromUser(userID))
+		
+
+	def estimatePreference(self,**args):
+		userID = args.get('thingID',None) or args.get('userID',None)
+		itemID = args.get('itemID',None)
+		similarity = args.get('similarity',self.similarity)
+		
+		preference = self.model.PreferenceValue(userID,itemID)
+		
+		if preference is not None:
+			return preference
+			
+		
+		totalSimilarity = 0.0
+		preference = 0.0
+		count = 0
+		
+		prefs = self.model.PreferencesFromUser(userID)
+		for toItemID, pref in prefs:
+			if toItemID != itemID:
+				sim = similarity.getSimilarity(itemID,toItemID)
+				if sim is not None:
+					preference += sim * pref
+					totalSimilarity += sim
+					count+=1
+		
+		#Throw out the estimate if it was based on no data points, of course, but also if based on
+		#just one. This is a bit of a band-aid on the 'stock' item-based algorithm for the moment.
+		#The reason is that in this case the estimate is, simply, the user's rating for one item
+		#that happened to have a defined similarity. The similarity score doesn't matter, and that
+		#seems like a bad situation.
+		if count <=1 or totalSimilarity == 0.0:
+			return None
+		
+		estimated = float(preference) / totalSimilarity
+		
+		if self.capper:
+			#TODO: Maybe put this in a separated function.
+			max = self.model.MaxPreference()
+			min = self.model.MinPreference()
+			estimated =  max if estimated > max else min if estimated < min else estimated
+					
+		return estimated
+		
+	def estimateBecausePreference(self,**args):
+		userID = args.get('thingID') or args.get('userID')
+		itemID = args.get('itemID')
+		similarity = args.get('similarity',self.similarity)
+		recommendedItemID = args.get('recommendedItemID')
+						
+		pref = self.model.PreferenceValue(userID,itemID)
+		
+		if pref is None:
+			return None
+		
+		simValue =  similarity.getSimilarity(itemID,recommendedItemID)
+		
+		return (1.0 + simValue) * pref
+	
+	
+	
+	def recommendedBecause(self,userID,itemID,howMany,rescorer=None):
+		
+		prefs = self.model.PreferencesFromUser(userID)
+		
+		allUserItems = [otherItemID  for otherItemID,pref in prefs if otherItemID != itemID]
+		
+		allUserItems = list(set(allUserItems))
+		
+		
+		return topItems(thingID=userID,possibleItemIDs=allUserItems,howMany=howMany,preferenceEstimator=self.estimateBecausePreference,
+						similarity=self.similarity,rescorer=None,recommendedItemID=itemID)	
+	
+			
+	
+	def mostSimilarItems(self,itemIDs,howMany,rescorer=None):
+		possibleItemIDs = []
+		for itemID in itemIDs:
+			prefs = self.model.PreferencesForItem(itemID)
+			for userID,pref in prefs:
+				possibleItemIDs.extend(self.model.ItemIDsFromUser(userID))
+		
+		possibleItemIDs = list(set(possibleItemIDs))
+		
+	 	pItems = [itemID for itemID in possibleItemIDs if itemID not in itemIDs]
+		
+		return topItems(itemIDs,pItems,howMany,self.estimateMultiItemsPreference,self.similarity,rescorer)
+		
+		
+		
+		
+		
+	

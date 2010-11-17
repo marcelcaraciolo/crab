@@ -83,7 +83,8 @@ def topItems(thingID,possibleItemIDs,howMany,preferenceEstimator,similarity,resc
 	topNRecs = []
 	
 	extra.update({'rescorer':rescorer})
-	
+		
+		
 	for otherItemID in possibleItemIDs:
 		preference = preferenceEstimator(thingID=thingID,similarity=similarity,itemID=otherItemID,**extra)
 		

@@ -28,6 +28,13 @@
 
 '''
 
+"""
+:mod:`similarities_test` -- the similarity evaluation tests
+================================================================
+		
+
+"""
+
 __author__ = 'marcel@orygens.com'
 
 import unittest
@@ -414,3 +421,6 @@ def suite():
 
 if __name__ == '__main__':
 	unittest.main()
+
+
+
