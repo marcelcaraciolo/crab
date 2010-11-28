@@ -9,7 +9,8 @@ h3 { text-align: center; color: #bd7e0f; }
 a { color: #870808;}
 a.top:hover {border-bottom:2px dotted;border-bottom-color:#5c5757;}
 .description {text-align:center; font-family:'Yanone Kaffeesatz';font-size: 1.4em; margin-bottom: 30px;}
-.download { float: right; }
+.download { float: right;}
+.image {text-align:left; width:900px;}
 pre {font-family:'Monaco'; font-size: 13px; background: #1c1a1c; color: #fff; padding: 15px;}
 pre.terminal {font-family:'Monaco'; font-size: 13px; background: #1c1a1c; color: #42c218; padding: 15px;}
 hr { border: 0; width: 80%; border-bottom: 1px solid #aaa}
