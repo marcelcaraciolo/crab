@@ -13,8 +13,11 @@ It is also open-source so everyone can use it.
 ## Collaborators
 
 Marcel Caraciolo (twitter.com/marcelcaraciolo) - (caraciol@gmail.com)
+
 Bruno Melo - (twitter.com/brunomelo) - (brunojm@gmail.com)
+
 Ricardo Caspirro - (twitter.com/ricardocaspirro) - (ricardo.caspirro@gmail.com)
+
 Rodrigo Alves - (twitter.com/rodrigo3n)- (rodrigo3n@gmail.com)
 
 ## Feedback and Issues
