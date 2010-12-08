@@ -1,5 +1,7 @@
 # Crab - A Python Library for Recommendation Engines 
 
+![The Crab himself](http://dl.dropbox.com/u/7743293/crab.png)
+
 [Crab Website](http://marcelcaraciolo.github.com/crab)
 
 This library intends to be a reference for recommendation engines in Python Programming language.
