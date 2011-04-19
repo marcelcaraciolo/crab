@@ -33,13 +33,15 @@ class DiffStorage(object):
 	An implementation of DiffStorage that merely stores item-item diffs in memory. 
 	Caution: It may consume a great deal of memory due to larger datasets.
 	'''
-	def __init__(self,model,stdDevWeighted):
+	def __init__(self,model,stdDevWeighted,toPrune=True):
 		''' DiffStorage Class Constructor
 		     `model` is the data source model
 			 `stdDevWeighted` is a flag that if it is True, use standard deviation weighting of diffs
+			 `toPrune` is a flag that if it is True, it will prune the irrelevant diffs, represented by one data point.
 		'''
 		self.model = model
 		self.stdDevWeighted = stdDevWeighted
+		self.toPrune = toPrune
 		self._diffStorage = {}
 		self._freqs = {}
 		self._recommendableItems = []
@@ -49,8 +51,10 @@ class DiffStorage(object):
 		self._diffStorage = {}
 		for userID in self.model.UserIDs():
 			self.processOneUser(userID)
-		self.pruneDiffs()
+		if self.toPrune:
+			self.pruneDiffs()
 		self.updateAllRecommendableItems()
+		self.evaluateAverage()
 		
 	def recommendableItems(self):
 		return self._recommendableItems
@@ -60,9 +64,14 @@ class DiffStorage(object):
 		for itemID in self._diffStorage:
 			self._recommendableItems.append(itemID)
 		self._recommendableItems.sort()
-		
+	
+	def evaluateAverage(self):
+		for itemIDA,ratings in self._diffStorage.iteritems():
+			for itemIDB in ratings:
+				ratings[itemIDB]/= self._freqs[itemIDA][itemIDB]
+						
 	def diffsAverage(self,userID,itemID,prefs):
-		return [ self.diff(itemID,itemID2)   for  itemID2,rating in prefs]
+		return [ self.diff(itemID,itemID2)  if itemID2 in self._freqs[itemID] else - self.diff(itemID,itemID2) if self.diff(itemID,itemID2) else None  for  itemID2,rating in prefs]
 	
 	def diff(self,itemIDA,itemIDB):
 		if itemIDA in self._diffStorage:
@@ -71,12 +80,16 @@ class DiffStorage(object):
 			elif itemIDB in self._diffStorage:
 				if itemIDA in self._diffStorage[itemIDB]:
 					return self._diffStorage[itemIDB][itemIDA]
+				else:
+					return None
+			else:
+				return None
 					
 	def count(self,itemID,itemID2):
 		try:
-			return self.freqs[itemID][itemIDB]
+			return self._freqs[itemID][itemID2]
 		except KeyError:
-			return self.freqs[itemIDB][itemID]			
+			return self._freqs[itemID2][itemID]			
 	
 	def pruneDiffs(self):
 		'''
