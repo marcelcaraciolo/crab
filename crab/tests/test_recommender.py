@@ -26,12 +26,11 @@ __author__ = 'marcel@orygens.com'
 import unittest
 import sys
 
-#sys.path.append('/Users/marcelcaraciolo/Desktop/crab/crab/crab')
-
+sys.path.append('/Users/marcelcaraciolo/Desktop/crab/crab/crab')
 
 from models.datamodel import *
 from recommender.topmatches import *
-from recommender.recommender import UserRecommender, ItemRecommender
+from recommender.recommender import UserRecommender, ItemRecommender, SlopeOneRecommender
 from recommender.utils import DiffStorage
 from similarities.similarity import UserSimilarity, ItemSimilarity
 from similarities.similarity_distance import *
@@ -194,12 +193,11 @@ class TestSlopeOneRecommender(unittest.TestCase):
 	
 	def test_buildAveragesDiff(self):
 		storage = DiffStorage(self.model,False)
-		self.assertEquals(storage._diffStorage,{'Lady in the Water': {'Snakes on a Plane': -4.0, 'You, Me and Dupree': 0.0, 'Superman Returns': -6.0, 'The Night Listener': -2.0}, 
-		                      'Snakes on a Plane': {'You, Me and Dupree': 8.0, 'Superman Returns': -2.0, 'The Night Listener': 1.0}, 
-		                      'Just My Luck': {'Snakes on a Plane': -5.0, 'Lady in the Water': -2.0, 'You, Me and Dupree': -1.0, 'Superman Returns': -6.0, 'The Night Listener': -4.0}, 
-		                      'Superman Returns': {'You, Me and Dupree': 9.5, 'The Night Listener': 3.5}, 
-		                      'You, Me and Dupree': {}, 
-		                      'The Night Listener': {'You, Me and Dupree': 2.5}})
+		self.assertEquals(storage._diffStorage,{'Lady in the Water': {'Snakes on a Plane': -0.80000000000000004, 'You, Me and Dupree': 0.0, 'Superman Returns': -1.2, 'The Night Listener': -0.40000000000000002}, 
+		                                       'Snakes on a Plane': {'You, Me and Dupree': 1.3333333333333333, 'Superman Returns': -0.2857142857142857, 'The Night Listener': 0.16666666666666666},
+		                                       'Just My Luck': {'Snakes on a Plane': -1.25, 'Lady in the Water': -0.66666666666666663, 'You, Me and Dupree': -0.25, 'Superman Returns': -1.5, 'The Night Listener': -1.0},
+		                                       'Superman Returns': {'You, Me and Dupree': 1.5833333333333333, 'The Night Listener': 0.58333333333333337},
+		                                        'You, Me and Dupree': {}, 'The Night Listener': {'You, Me and Dupree': 0.5}})
 		
 		self.assertEquals(storage._freqs,{'Lady in the Water': {'Snakes on a Plane': 5, 'You, Me and Dupree': 4, 'Superman Returns': 5, 'The Night Listener': 5},
 		             'Snakes on a Plane': {'You, Me and Dupree': 6, 'Superman Returns': 7, 'The Night Listener': 6}, 
@@ -236,15 +234,88 @@ class TestSlopeOneRecommender(unittest.TestCase):
 		self.assertEquals(storage._recommendableItems,['A','B'])
 		
 		storage = DiffStorage(DictDataModel({'Maria':{'A':4.0, 'B': 2.0}, 'Joao':{'B': 5.0, 'A':5.0}, 'Flavia':{'A': 2.0, 'C': 3.0} }),False)
-		self.assertEquals(storage._diffStorage,{'A': {'B': 2.0}, 'B':{}, 'C':{}})
+		self.assertEquals(storage._diffStorage,{'A': {'B': 1.0}, 'B':{}, 'C':{}})
 		self.assertEquals(storage._freqs,{'A': {'B':2}, 'B': {}, 'C': {} })
 		self.assertEquals(storage._recommendableItems,['A','B', 'C'])
 	
+	
+	def test_create_ItemBasedRecommender(self):
+		recSys = SlopeOneRecommender(self.model,True,True)
+		self.assertEquals(recSys.weighted,True)
+		self.assertEquals(recSys.stdDevWeighted,True)
+		self.assertEquals(recSys.model,self.model)
 
+	def test_local_estimatePreference(self):
+		userID = 'Marcel Caraciolo'
+		itemID = 'Superman Returns'
+		recSys = SlopeOneRecommender(self.model,False,False)
+		self.assertAlmostEquals(3.5,recSys.estimatePreference(userID=userID,itemID=itemID))		
+
+	def test_local_not_existing_estimatePreference(self):
+		userID = 'Leopoldo Pires'
+		itemID = 'You, Me and Dupree'
+		#Weighted - With Prune
+		recSys = SlopeOneRecommender(self.model,True,False,True)
+		self.assertAlmostEquals(2.333333333333,recSys.estimatePreference(userID=userID,itemID=itemID))	
+		#Weighted - No Prune
+		recSys = SlopeOneRecommender(self.model,True,False,False)
+		self.assertAlmostEquals(2.333333333333,recSys.estimatePreference(userID=userID,itemID=itemID))
+		#No Weighted - No Prune
+		recSys = SlopeOneRecommender(self.model,False,False,False)
+		self.assertAlmostEquals(2.395833333333,recSys.estimatePreference(userID=userID,itemID=itemID))
+		#No Weighted - With Prune
+		recSys = SlopeOneRecommender(self.model,False,False,True)
+		self.assertAlmostEquals(2.39583333333,recSys.estimatePreference(userID=userID,itemID=itemID))
+		
+		#Weighted - StdDev - With Prune
+		recSys = SlopeOneRecommender(self.model,True,True,True)
+		self.assertAlmostEquals(2.333333333333,recSys.estimatePreference(userID=userID,itemID=itemID))
+		#Weighted - StdDev - No Prune
+		recSys = SlopeOneRecommender(self.model,True,True,False)
+		self.assertAlmostEquals(2.333333333333,recSys.estimatePreference(userID=userID,itemID=itemID))
+		
+		#Without Prune- Weighted
+		recSys = SlopeOneRecommender(DictDataModel({'John':{'A': 5.0, 'B': 3.0, 'C': 2.0}, 'Mark':{'A':3.0, 'B': 4.0}, 'Lucy':{'B':2.0, 'C':5.0}}),True,False,False)
+		self.assertAlmostEquals(4.3333333333333,recSys.estimatePreference(userID='Lucy',itemID='A'))
 	
-	
+	def test_empty_recommend(self):
+		userID = 'Marcel Caraciolo'
+		recSys = SlopeOneRecommender(self.model,True,False,False)
+		self.assertEquals([],recSys.recommend(userID,4))
+		recSys = SlopeOneRecommender(self.model,True,False,True)
+		self.assertEquals([],recSys.recommend(userID,4))
+
+	def test_recommend(self):
+		userID = 'Leopoldo Pires'
+		recSys = SlopeOneRecommender(self.model,True,False,False)
+		self.assertEquals([ 'You, Me and Dupree', 'Just My Luck'],recSys.recommend(userID,4))
+		recSys = SlopeOneRecommender(self.model,True,False,True)
+		self.assertEquals(['You, Me and Dupree','Just My Luck' ],recSys.recommend(userID,4))
+
+		recSys = SlopeOneRecommender(DictDataModel({'John':{'A': 5.0, 'B': 3.0, 'C': 2.0}, 'Mark':{'A':3.0, 'B': 4.0}, 'Lucy':{'B':2.0, 'C':5.0}}),True,False,False)
+		self.assertEquals(['A'],recSys.recommend('Lucy',4))
+		
+		users2 = {"Amy": {"Dr. Dog": 4, "Lady Gaga": 3, "Phoenix": 4},          
+		              "Ben": {"Dr. Dog": 5, "Lady Gaga": 2},          
+		"Clara": {"Lady Gaga": 3.5, "Phoenix": 4}}		
+		recSys = SlopeOneRecommender(DictDataModel(users2),True,False,False)
+		self.assertEquals(['Phoenix'],recSys.recommend('Ben',1))
 		
 		
+
+	def test_full_recommend(self):
+		userID = 'Maria Gabriela'
+		recSys = SlopeOneRecommender(self.model,True,False,False)
+		self.assertEquals([],recSys.recommend(userID,4))
+		recSys = SlopeOneRecommender(self.model,True,False,True)
+		self.assertEquals([],recSys.recommend(userID,4))
+		
+	def test_semi_recommend(self):
+		userID = 'Leopoldo Pires'
+		recSys = SlopeOneRecommender(self.model,True,False,False)
+		self.assertEquals(['You, Me and Dupree'],recSys.recommend(userID,1))
+		recSys = SlopeOneRecommender(self.model,True,False,True)
+		self.assertEquals(['You, Me and Dupree'],recSys.recommend(userID,1))
 				
 
 class TestItemBasedRecommender(unittest.TestCase):

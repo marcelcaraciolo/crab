@@ -43,6 +43,7 @@ class DiffStorage(object):
 		self.stdDevWeighted = stdDevWeighted
 		self.toPrune = toPrune
 		self._diffStorage = {}
+		self._diffStorageStdDev = {}
 		self._freqs = {}
 		self._recommendableItems = []
 		self._buildAverageDiffs()
@@ -54,6 +55,8 @@ class DiffStorage(object):
 		if self.toPrune:
 			self.pruneDiffs()
 		self.updateAllRecommendableItems()
+		if self.stdDevWeighted:
+			self.evaluateStandardDeviation()
 		self.evaluateAverage()
 		
 	def recommendableItems(self):
@@ -71,7 +74,7 @@ class DiffStorage(object):
 				ratings[itemIDB]/= self._freqs[itemIDA][itemIDB]
 						
 	def diffsAverage(self,userID,itemID,prefs):
-		return [ self.diff(itemID,itemID2)  if itemID2 in self._freqs[itemID] else - self.diff(itemID,itemID2) if self.diff(itemID,itemID2) else None  for  itemID2,rating in prefs]
+		return [ self.diff(itemID,itemID2)  if itemID2 in self._freqs[itemID] else - self.diff(itemID,itemID2) if self.diff(itemID,itemID2) is not None else None  for  itemID2,rating in prefs]
 	
 	def diff(self,itemIDA,itemIDB):
 		if itemIDA in self._diffStorage:
@@ -84,7 +87,17 @@ class DiffStorage(object):
 					return None
 			else:
 				return None
-					
+	
+	def evaluateStandardDeviation(self):
+		for itemIDA,ratings in self._diffStorage.iteritems():
+			for itemIDB in ratings:
+				pass
+
+				
+	
+	def standardDeviation(self,itemID,itemID2):
+		return 0.0
+							
 	def count(self,itemID,itemID2):
 		try:
 			return self._freqs[itemID][itemID2]
@@ -112,10 +125,7 @@ class DiffStorage(object):
 			self._freqs.setdefault(itemID1,{})
 			for indexB,preferenceB in enumerate(userPreferences[indexA+1:]):
 				itemID2,rating2 = preferenceB
-				if self.stdDevWeighted:
-					pass
-				else:
-					self._diffStorage[itemID1].setdefault(itemID2,0.0)
-					self._freqs[itemID1].setdefault(itemID2,0)
-					self._diffStorage[itemID1][itemID2]+= (rating1 - rating2)
-					self._freqs[itemID1][itemID2]+=1
+				self._diffStorage[itemID1].setdefault(itemID2,0.0)
+				self._freqs[itemID1].setdefault(itemID2,0)
+				self._diffStorage[itemID1][itemID2]+= (rating1 - rating2)
+				self._freqs[itemID1][itemID2]+=1

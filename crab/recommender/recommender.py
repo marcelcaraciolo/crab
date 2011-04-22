@@ -28,8 +28,9 @@ This module contains functions and classes to produce recommendations.
 
 """
 
-from interfaces import UserBasedRecommender, ItemBasedRecommender
+from interfaces import UserBasedRecommender, ItemBasedRecommender, Recommender
 from topmatches import topUsers, topItems
+from utils import DiffStorage
 
 class UserRecommender(UserBasedRecommender):
 	'''
@@ -132,6 +133,81 @@ class UserRecommender(UserBasedRecommender):
 		return [itemID for itemID in possibleItemIDs if itemID not in itemIds]		
 
 
+class SlopeOneRecommender(Recommender):
+	"""
+	A basic "slope one" recommender. This is a recommender specially suitable when user preferencces are
+	updating frequently as it can incorporate this information without expensive recomputation.
+	It can also be used as a weighted slope one recommender.
+	"""
+	def __init__(self,model,weighted=True,stdDevWeighted=True,toPrune=True):
+		''' SlopeOneRecommender Class Constructor
+		     `model` is the data source model
+			 `weighted` is a flag that if it is True, it act as a weighted slope one recommender.
+			 `stdDevWeighted` is a flag that if it is True, use standard deviation weighting of diffs
+			 `toPrune` is a flag that if it is True, it will prune the irrelevant diffs, represented by one data point.
+			
+		'''
+		Recommender.__init__(self,model)
+		self.weighted = weighted
+		self.stdDevWeighted = stdDevWeighted
+		self.storage = DiffStorage(self.model,self.stdDevWeighted,toPrune)
+	
+	def recommend(self,userID,howMany,rescore=None):
+		possibleItemIDs = self.possibleItemIDs(userID)
+				
+		rec_items = topItems(userID,possibleItemIDs,howMany,self.estimatePreference,None,None)
+		
+		return rec_items
+		
+	def possibleItemIDs(self,userID):
+		preferences = self.model.ItemIDsFromUser(userID)
+		recommendableItems =  self.storage.recommendableItems()
+		return [ itemID  for itemID in recommendableItems if itemID not in preferences]
+		
+	def estimatePreference(self,**args):
+		userID = args.get('thingID',None) or args.get('userID',None)
+		itemID = args.get('itemID',None)
+		similarity = args.get('similarity',None)
+		nHood = args.get('neighborhood',None)
+		rescorer = args.get('rescorer',None)
+		
+		if not nHood:
+			pref = self.model.PreferenceValue(userID,itemID)
+			if pref is not None:
+				return pref
+		
+		count = 0
+		totalPreference = 0.0
+		prefs = self.model.PreferencesFromUser(userID)
+		averages = self.storage.diffsAverage(userID,itemID,prefs)
+		for i in range(len(prefs)):
+			averageDiffValue = averages[i]
+			if averageDiffValue is not None:
+				if self.weighted:
+					weight = self.storage.count(itemID,prefs[i][0])
+					if self.stdDevWeighted:
+						stdev = self.storage.standardDeviation(itemID,prefs[i][0])
+						if stdev is not None:
+							weight /= 1.0 + stdev
+							#If stdev is None, it is because count is 1. Since we are weighting by count
+							#the weight is already low. So we assume stdev is 0.0.
+					totalPreference += weight * (prefs[i][1] + averageDiffValue)
+					count += weight
+				else:
+					totalPreference+= prefs[i][1] + averageDiffValue
+					count+=1
+
+		if count <= 0:
+			return None
+			#BUGFIX
+			#itemAverage =  self.storage.AverageItemPref(itemID)
+			#if itemAverage is not None:
+			#	itemAverage = itemAverage.Average()
+			#	return itemAverage
+			#else:
+			#	return None
+		else:
+			return totalPreference/float(count)
 
 class ItemRecommender(ItemBasedRecommender):
 	'''
