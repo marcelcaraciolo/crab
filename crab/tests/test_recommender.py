@@ -26,7 +26,6 @@ __author__ = 'marcel@orygens.com'
 import unittest
 import sys
 
-sys.path.append('/Users/marcelcaraciolo/Desktop/crab/crab/crab')
 
 from models.datamodel import *
 from recommender.topmatches import *
