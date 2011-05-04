@@ -159,7 +159,7 @@ class IRStatsRecommenderEvaluator(RecommenderEvaluator):
         if at < 1:
             raise Exception('at must be at leaste 1.')
         
-        irStats = {'precision': 0.0, 'recall': 0.0, 'fallOut': 0.0, 'nDCG': 0.0}
+        irStats = {'precision': None, 'recall': None, 'fallOut': None, 'nDCG': None}
         irFreqs = {'precision': 0, 'recall': 0, 'fallOut': 0, 'nDCG': 0}
         
         nItems = dataModel.NumItems()
@@ -208,9 +208,10 @@ class IRStatsRecommenderEvaluator(RecommenderEvaluator):
                 
                 recommendedItems = recommender.recommend(userID,at)
                 intersectionSize = len([ recommendedItem  for recommendedItem in recommendedItems if recommendedItem in relevantItemIDs])
-                
-                for key in irStats:
-                    irStats.setdefault(key,0.0)
+                print intersectionSize
+                for key in irStats.keys():
+                    irStats[key] = 0.0
+
 
                 #Precision
                 if len(recommendedItems) > 0:
@@ -240,11 +241,14 @@ class IRStatsRecommenderEvaluator(RecommenderEvaluator):
                     #ideal list starts with number of relevant items equal to the total number of relevant items
                     if index < len(relevantItemIDs):
                         idealizedGain+= discount
-                irStats['nDCG'] +=  float(cumulativeGain) / idealizedGain
+                irStats['nDCG'] +=  float(cumulativeGain) / idealizedGain if idealizedGain else 0.0
                 irFreqs['nDCG'] +=1
         
         for key in irFreqs:
-            irStats[key] = irStats[key] / float(irFreqs[key])  if irFreqs[key] > 0 else 0.0
+            irStats[key] = irStats[key] / float(irFreqs[key])  if irFreqs[key] > 0 else None
+
+        sum_score = irStats['precision'] + irStats['recall']  if irStats['precision'] is not None and irStats['recall'] is not None else None
+        irStats['f1Score'] =   None  if not sum_score else (2.0) * irStats['precision'] * irStats['recall'] / sum_score 
             
         return irStats
         

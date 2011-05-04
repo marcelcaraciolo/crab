@@ -296,7 +296,7 @@ class TestIRStatsRecommenderEvaluator(unittest.TestCase):
         evaluator = IRStatsRecommenderEvaluator()
         recommender  = UserRecommender(self.model,self.similarity,self.neighbor,True)
         result = evaluator.evaluate(recommender,self.model,4,1.0)
-        self.assertEquals(result,{'nDCG': 0.0, 'recall': 0.0, 'precision': 0.0, 'fallOut': 0.0})
+        self.assertEquals(result,{'nDCG': None, 'recall': None, 'f1Score': None, 'precision': None, 'fallOut': None})
 
     def test_User_IRStatsRecommenderEvaluator(self):
         evaluator = IRStatsRecommenderEvaluator()
@@ -308,13 +308,13 @@ class TestIRStatsRecommenderEvaluator(unittest.TestCase):
         evaluator = IRStatsRecommenderEvaluator()
         recommender = ItemRecommender(self.model,self.similarity_item,self.strategy,False)
         result = evaluator.evaluate(recommender,self.model,2,1.0)
-        #print result
+        print result
 
     def test_Slope_IRStatsRecommenderEvaluator(self):
         evaluator = IRStatsRecommenderEvaluator()
         recommender = SlopeOneRecommender(self.model,True,False,False)
         result = evaluator.evaluate(recommender,self.model,2,1.0)
-        #print result
+        print result
 
 
     def test_evaluate_IRStatsRecommenderEvaluator(self):
@@ -419,6 +419,9 @@ class TestIRStatsRecommenderEvaluator(unittest.TestCase):
         
         for key in irFreqs:
             irStats[key] = irStats[key] / float(irFreqs[key])
+
+        sum_score = irStats['precision'] + irStats['recall']  if irStats['precision'] is not None and irStats['recall'] is not None else None
+        irStats['f1Score'] =   None   if not sum_score else (2.0) * irStats['precision'] * irStats['recall'] / sum_score 
 
         #print irStats
 
