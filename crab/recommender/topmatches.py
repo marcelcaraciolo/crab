@@ -18,86 +18,103 @@
 # limitations under the License.
 #========================================================================
 
-#REVISION HISTORY
+# REVISION HISTORY
 
 #0.1 2010-11-09  Initial version.
-
-
-
 """
-:mod:`topmatches` -- the topmatches  module  
+:mod:`topmatches` -- the topmatches  module
 ================================================================
 
 This module contains functions that implements the find top N things logic.
 
 """
 
-NO_IDS =  []
-
-def topUsers(thingID,allUserIDs,howMany,preferenceEstimator,similarity,rescorer=None,**extra):
-	''' Find Top N Users 
-	
-	`thingID` ID of the user/item for which to find most similar users to find.
-	`allUserIDs` the set of userIDs from the data model.
-	`howMany` the number of most similar users to find.
-	`preferenceEstimator` : a function for estimate the preference given a userID and otherUserID.
-	`similarity` the similarity between users.
-	`rescorer` a Scorer Class for rescore the preference for a thing (user or item).
-	
-	'''
-	topNRecs = []
-
-	extra.update({'rescorer':rescorer})
-	
-	for otherUserID in allUserIDs:
-		preference = preferenceEstimator(thingID=thingID,similarity=similarity,otherUserID=otherUserID,**extra)
-	
-		if preference is None:
-			continue
-			
-		rescoredPref =  rescorer.rescore(thingID,preference) if rescorer else preference
-		
-		if rescoredPref is not None:
-			topNRecs.append((otherUserID,rescoredPref))
-	
-	
-	topNRecs = sorted(topNRecs, key = lambda item: -item[1])
-	
-	topNRecs = [item[0] for item in topNRecs]
-	
- 	return topNRecs[0:howMany] if topNRecs and len(topNRecs) > howMany else topNRecs if topNRecs else NO_IDS
+NO_IDS = []
 
 
-def topItems(thingID,possibleItemIDs,howMany,preferenceEstimator,similarity,rescorer=None,**extra):
-	''' 
-	Find Top N items 
-	
-	`thingID` ID of the item or user  for which to find most similar items to find.
-	`possibleItemIDs` the set of possible itemIDs from data model.
-	`howMany` the number of most similar items to find.
-	`preferenceEstimator` : a function for estimate the preference given an itemID and otherItemID.
-	`similarity` the similarity between items.
-	`rescorer` a Scorer Class for rescore the preference for a thing (user or item).
-	
-	'''
-	topNRecs = []
-	
-	extra.update({'rescorer':rescorer})
-		
-		
-	for otherItemID in possibleItemIDs:
-		preference = preferenceEstimator(thingID=thingID,similarity=similarity,itemID=otherItemID,**extra)
-		
-		if preference is None:
-			continue
-		
-		rescoredPref =  rescorer.rescore(thingID,preference) if rescorer else preference
-				
-		if rescoredPref is not None:
-			topNRecs.append((otherItemID,rescoredPref))
+def topUsers(thingID, allUserIDs, howMany, preferenceEstimator, similarity,
+        rescorer=None, **extra):
+    ''' Find Top N Users
 
-	topNRecs = sorted(topNRecs, key = lambda item: -item[1])
-		
-	topNRecs = [item[0] for item in topNRecs]
-		
-	return topNRecs[0:howMany] if topNRecs and len(topNRecs) > howMany else topNRecs if topNRecs else []
+    `thingID` ID of the user/item for which to find most similar users to find.
+
+    `allUserIDs` the set of userIDs from the data model.
+
+    `howMany` the number of most similar users to find.
+
+    `preferenceEstimator` : a function for estimate the preference given a
+    userID and otherUserID.
+
+    `similarity` the similarity between users.
+
+    `rescorer` a Scorer Class for rescore the preference for a thing (user or
+    item).
+    '''
+    topNRecs = []
+
+    extra.update({'rescorer': rescorer})
+
+    for otherUserID in allUserIDs:
+        preference = preferenceEstimator(thingID=thingID,
+                similarity=similarity, otherUserID=otherUserID, **extra)
+
+        if preference is None:
+            continue
+
+        rescoredPref = rescorer.rescore(thingID, preference) \
+                        if rescorer else preference
+
+        if rescoredPref is not None:
+            topNRecs.append((otherUserID, rescoredPref))
+
+    topNRecs = sorted(topNRecs, key=lambda item: -item[1])
+
+    topNRecs = [item[0] for item in topNRecs]
+
+    return topNRecs[0:howMany] if topNRecs and len(topNRecs) > howMany \
+            else topNRecs if topNRecs else NO_IDS
+
+
+def topItems(thingID, possibleItemIDs, howMany, preferenceEstimator,
+        similarity, rescorer=None, **extra):
+    '''
+    Find Top N items
+
+    `thingID` ID of the item or user  for which to find most similar items to
+    find.
+
+    `possibleItemIDs` the set of possible itemIDs from data model.
+
+    `howMany` the number of most similar items to find.
+
+    `preferenceEstimator` : a function for estimate the preference given an
+    itemID and otherItemID.
+
+    `similarity` the similarity between items.
+
+    `rescorer` a Scorer Class for rescore the preference for a thing (user or
+    item).
+    '''
+    topNRecs = []
+
+    extra.update({'rescorer': rescorer})
+
+    for otherItemID in possibleItemIDs:
+        preference = preferenceEstimator(thingID=thingID,
+                similarity=similarity, itemID=otherItemID, **extra)
+
+        if preference is None:
+            continue
+
+        rescoredPref = rescorer.rescore(thingID, preference) \
+                        if rescorer else preference
+
+        if rescoredPref is not None:
+            topNRecs.append((otherItemID, rescoredPref))
+
+    topNRecs = sorted(topNRecs, key=lambda item: -item[1])
+
+    topNRecs = [item[0] for item in topNRecs]
+
+    return topNRecs[0:howMany] if topNRecs and len(topNRecs) > howMany \
+            else topNRecs if topNRecs else []
